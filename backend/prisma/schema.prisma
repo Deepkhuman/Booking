@@ -22,8 +22,11 @@ enum Role {
 model User {
   id                  Int       @id @default(autoincrement())
   email               String    @unique
-  password            String
+  password            String?
   name                String?
+  avatar              String?
+  googleId            String?   @unique
+  facebookId          String?   @unique
   role                Role      @default(CUSTOMER)
   isEmailVerified     Boolean   @default(false)
   emailVerifyToken    String?   @unique
