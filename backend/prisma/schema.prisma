@@ -20,15 +20,31 @@ enum Role {
 }
 
 model User {
+  id                  Int       @id @default(autoincrement())
+  email               String    @unique
+  password            String
+  name                String?
+  role                Role      @default(CUSTOMER)
+  isEmailVerified     Boolean   @default(false)
+  emailVerifyToken    String?   @unique
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime?
+  passwordResetToken  String?   @unique
+  passwordResetExpiry DateTime?
+  refreshTokens       RefreshToken[]
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  shops               Shop[]
+  bookings            Booking[]
+}
+
+model RefreshToken {
   id        Int      @id @default(autoincrement())
-  email     String   @unique
-  password  String
-  name      String?
-  role      Role     @default(CUSTOMER)
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  shops     Shop[]
-  bookings  Booking[]
 }
 
 model Shop {

@@ -19,6 +19,7 @@ async function main() {
       email: 'admin@booking.com',
       password,
       role: Role.ADMIN,
+      isEmailVerified: true,
     },
   });
 
