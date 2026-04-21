@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,17 +7,103 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ─────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────
+
 enum Role {
   CUSTOMER
-  OWNER
+  VENDOR
   ADMIN
 }
+
+enum VendorStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+  BLOCKED
+}
+
+enum BookingType {
+  SLOT_BASED
+  HOURLY
+  DAILY
+  NO_BOOKING
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  UNPAID
+  PAID
+  REFUNDED
+}
+
+enum PaymentProvider {
+  STRIPE
+}
+
+enum PaymentTransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum NotificationType {
+  BOOKING_CREATED
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  BOOKING_COMPLETED
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  PAYMENT_REFUNDED
+  VENDOR_APPROVED
+  VENDOR_SUSPENDED
+  VENDOR_BLOCKED
+  REVIEW_RECEIVED
+  REVIEW_REPLIED
+  SERVICE_DISABLED
+  SERVICE_ENABLED
+}
+
+enum AdminActionType {
+  APPROVE
+  SUSPEND
+  BLOCK
+  UNBLOCK
+  DELETE
+  ENABLE_SERVICE
+  DISABLE_SERVICE
+  HIDE_REVIEW
+  SHOW_REVIEW
+  BLOCK_USER
+  UNBLOCK_USER
+}
+
+enum AdminTargetType {
+  VENDOR
+  SERVICE
+  REVIEW
+  USER
+}
+
+// ─────────────────────────────────────────
+// USER
+// ─────────────────────────────────────────
 
 model User {
   id                  Int       @id @default(autoincrement())
   email               String    @unique
   password            String?
   name                String?
+  phone               String?
   avatar              String?
   googleId            String?   @unique
   facebookId          String?   @unique
@@ -34,11 +114,17 @@ model User {
   lockedUntil         DateTime?
   passwordResetToken  String?   @unique
   passwordResetExpiry DateTime?
-  refreshTokens       RefreshToken[]
+  isBlocked           Boolean   @default(false)
+  deletedAt           DateTime?
   createdAt           DateTime  @default(now())
   updatedAt           DateTime  @updatedAt
-  shops               Shop[]
-  bookings            Booking[]
+
+  refreshTokens RefreshToken[]
+  vendor        Vendor?
+  bookings      Booking[]
+  reviews       Review[]
+  payments      Payment[]
+  notifications Notification[]
 }
 
 model RefreshToken {
@@ -50,57 +136,218 @@ model RefreshToken {
   createdAt DateTime @default(now())
 }
 
-model Shop {
+// ─────────────────────────────────────────
+// CATEGORY
+// ─────────────────────────────────────────
+
+model Category {
   id          Int      @id @default(autoincrement())
+  name        String   @unique
+  slug        String   @unique
+  icon        String?
+  description String?
+  isActive    Boolean  @default(true)
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  vendors Vendor[]
+}
+
+// ─────────────────────────────────────────
+// VENDOR
+// ─────────────────────────────────────────
+
+model Vendor {
+  id           Int          @id @default(autoincrement())
+  userId       Int          @unique
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categoryId   Int
+  category     Category     @relation(fields: [categoryId], references: [id])
+  businessName String
+  slug         String       @unique
+  description  String?
+  logo         String?
+  coverImage   String?
+  phone        String?
+  email        String?
+  website      String?
+  address      String?
+  city         String?
+  state        String?
+  country      String?
+  pincode      String?
+  lat          Float?
+  lng          Float?
+  bookingType  BookingType  @default(SLOT_BASED)
+  status       VendorStatus @default(PENDING)
+  isActive     Boolean      @default(true)
+  isFeatured   Boolean      @default(false)
+  isVerified   Boolean      @default(false)
+  deletedAt    DateTime?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  services      VendorService[]
+  businessHours BusinessHours[]
+  bookings      Booking[]
+  reviews       Review[]
+  documents     VendorDocument[]
+}
+
+model VendorDocument {
+  id        Int      @id @default(autoincrement())
+  vendorId  Int
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  url       String
+  type      String
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────
+// VENDOR SERVICE
+// ─────────────────────────────────────────
+
+model VendorService {
+  id          Int      @id @default(autoincrement())
+  vendorId    Int
+  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   name        String
   description String?
-  location    String?
-  ownerId     Int
-  owner       User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  services    Service[]
-  businessHours BusinessHours[]
-  bookings    Booking[]
+  price       Float
+  duration    Int?
+  isEnabled   Boolean  @default(true)
+  isActive    Boolean  @default(true)
+  deletedAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images   ServiceImage[]
+  bookings Booking[]
 }
 
-model Service {
-  id        Int      @id @default(autoincrement())
-  name      String
-  duration  Int
-  price     Float
-  shopId    Int
-  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  bookings  Booking[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model ServiceImage {
+  id        Int           @id @default(autoincrement())
+  serviceId Int
+  service   VendorService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  url       String
+  publicId  String
+  createdAt DateTime      @default(now())
 }
+
+// ─────────────────────────────────────────
+// BUSINESS HOURS
+// ─────────────────────────────────────────
 
 model BusinessHours {
-  id        Int    @id @default(autoincrement())
-  shopId    Int
-  dayOfWeek Int    // 0 = Sunday, 1 = Monday, etc.
-  openTime  String // "09:00"
-  closeTime String // "17:00"
-  shop      Shop   @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  
-  @@unique([shopId, dayOfWeek])
+  id           Int      @id @default(autoincrement())
+  vendorId     Int
+  vendor       Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  dayOfWeek    Int
+  openTime     String
+  closeTime    String
+  slotDuration Int      @default(30)
+  isClosed     Boolean  @default(false)
+
+  @@unique([vendorId, dayOfWeek])
 }
 
+// ─────────────────────────────────────────
+// BOOKING
+// ─────────────────────────────────────────
+
 model Booking {
-  id        Int      @id @default(autoincrement())
+  id            Int           @id @default(autoincrement())
+  customerId    Int
+  customer      User          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vendorId      Int
+  vendor        Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  serviceId     Int
+  service       VendorService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  bookingType   BookingType
+  date          String?
+  startTime     String?
+  endTime       String?
+  checkIn       DateTime?
+  checkOut      DateTime?
+  quantity      Int?          @default(1)
+  notes         String?
+  status        BookingStatus @default(PENDING)
+  paymentStatus PaymentStatus @default(UNPAID)
+  deletedAt     DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  payment Payment?
+  review  Review?
+}
+
+// ─────────────────────────────────────────
+// PAYMENT
+// ─────────────────────────────────────────
+
+model Payment {
+  id                     Int                      @id @default(autoincrement())
+  bookingId              Int                      @unique
+  booking                Booking                  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  userId                 Int
+  user                   User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount                 Float
+  currency               String                   @default("usd")
+  provider               PaymentProvider          @default(STRIPE)
+  status                 PaymentTransactionStatus @default(PENDING)
+  stripePaymentIntentId  String?
+  stripeChargeId         String?
+  refundId               String?
+  createdAt              DateTime                 @default(now())
+}
+
+// ─────────────────────────────────────────
+// REVIEW
+// ─────────────────────────────────────────
+
+model Review {
+  id          Int      @id @default(autoincrement())
+  customerId  Int
+  customer    User     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vendorId    Int
+  vendor      Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  bookingId   Int      @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  rating      Int
+  comment     String?
+  vendorReply String?
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────
+// NOTIFICATION
+// ─────────────────────────────────────────
+
+model Notification {
+  id        Int              @id @default(autoincrement())
   userId    Int
-  shopId    Int
-  serviceId Int
-  date      String   // "YYYY-MM-DD"
-  startTime String   // "09:30"
-  endTime   String   // "10:00"
-  status    String   @default("PENDING") // PENDING, APPROVED, CANCELLED
-  
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shop      Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  service   Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
+}
+
+// ─────────────────────────────────────────
+// ADMIN ACTION (Audit Log)
+// ─────────────────────────────────────────
+
+model AdminAction {
+  id         Int             @id @default(autoincrement())
+  adminId    Int
+  targetId   Int
+  targetType AdminTargetType
+  action     AdminActionType
+  reason     String?
+  createdAt  DateTime        @default(now())
 }
