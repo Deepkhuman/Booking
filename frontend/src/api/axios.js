@@ -1,18 +1,35 @@
 import axios from 'axios';
 
-// Automatically points to your local Node server running on port 5000
 const API = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'http://localhost:3000/api',
 });
 
-// Interceptor to inject JWT on every outgoing request automatically
 API.interceptors.request.use((req) => {
-  const userInfo = localStorage.getItem('userInfo');
-  if (userInfo) {
-    const parsed = JSON.parse(userInfo);
-    req.headers.Authorization = `Bearer ${parsed.token}`;
-  }
+  const token = localStorage.getItem('accessToken');
+  if (token) req.headers.Authorization = `Bearer ${token}`;
   return req;
 });
+
+API.interceptors.response.use(
+  (res) => res,
+  async (error) => {
+    const original = error.config;
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const { data } = await axios.post('http://localhost:3000/api/auth/refresh', { refreshToken });
+        localStorage.setItem('accessToken', data.data.accessToken);
+        localStorage.setItem('refreshToken', data.data.refreshToken);
+        original.headers.Authorization = `Bearer ${data.data.accessToken}`;
+        return axios(original);
+      } catch {
+        localStorage.clear();
+        window.location.href = '/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 export default API;

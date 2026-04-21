@@ -1,22 +1,23 @@
-import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import VerifyEmail from './pages/VerifyEmail';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Redirect root to login for now */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-        
-        {/* Public Auth Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/* Temporary Stubs for Dashboards we will build next */}
-        <Route path="/owner-dashboard" element={<div className="glass-panel" style={{margin:'2rem'}}><h2>Owner Dashboard Coming Next</h2></div>} />
-        <Route path="/customer-dashboard" element={<div className="glass-panel" style={{margin:'2rem'}}><h2>Customer Dashboard Coming Next</h2></div>} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/owner-dashboard" element={<div style={{ padding: '2rem', fontFamily: 'Inter' }}>Owner Dashboard — Coming Soon</div>} />
+        <Route path="/customer-dashboard" element={<div style={{ padding: '2rem', fontFamily: 'Inter' }}>Customer Dashboard — Coming Soon</div>} />
+        <Route path="/admin-dashboard" element={<div style={{ padding: '2rem', fontFamily: 'Inter' }}>Admin Dashboard — Coming Soon</div>} />
       </Routes>
     </BrowserRouter>
   );
