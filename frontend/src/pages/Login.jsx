@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import API from '../api/axios';
-import ThreeBackground from '../components/ThreeBackground';
 import Logo from '../components/Logo';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,36 +13,36 @@ export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    e.stopPropagation();
+    if (loading) return;
     setLoading(true);
+    setError('');
     try {
       const { data } = await API.post('/auth/login', form);
       const { accessToken, refreshToken, ...userData } = data.data;
       login(userData, accessToken, refreshToken);
       toast.success(`Welcome back, ${userData.name}!`);
-      setTimeout(() => navigate(getDashboardPath(userData.role)), 800);
+      navigate(getDashboardPath(userData.role));
     } catch (err) {
       const msg = err.response?.data?.message;
-      toast.error(Array.isArray(msg) ? msg[0] : msg || 'Failed to login');
+      const errorMsg = Array.isArray(msg) ? msg[0] : msg || 'Failed to login. Please try again.';
+      setError(errorMsg);
+      toast.error(errorMsg, { duration: 4000 });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = 'http://localhost:3001/api/auth/google';
-  };
-
-  const handleFacebookLogin = () => {
-    window.location.href = 'http://localhost:3001/api/auth/facebook';
-  };
+  const handleGoogleLogin = () => { window.location.href = 'http://localhost:3001/api/auth/google'; };
+  const handleFacebookLogin = () => { window.location.href = 'http://localhost:3001/api/auth/facebook'; };
 
   return (
     <div className="auth-page">
       <Toaster position="top-right" toastOptions={{ style: { fontFamily: 'Inter, sans-serif', fontSize: '0.88rem' } }} />
-      <ThreeBackground />
 
       {/* Left Panel */}
       <div className="auth-left">
@@ -65,9 +64,9 @@ export default function Login() {
         <h2 className="auth-title">Welcome back</h2>
         <p className="auth-subtitle">Sign in to continue to your account.</p>
 
-        {/* Social Login Buttons */}
+        {/* Social Buttons */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          <button onClick={handleGoogleLogin} className="social-btn">
+          <button type="button" onClick={handleGoogleLogin} className="social-btn">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
               <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/>
               <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 009 18z" fill="#34A853"/>
@@ -76,8 +75,7 @@ export default function Login() {
             </svg>
             Continue with Google
           </button>
-
-          <button onClick={handleFacebookLogin} className="social-btn">
+          <button type="button" onClick={handleFacebookLogin} className="social-btn">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
@@ -87,7 +85,13 @@ export default function Login() {
 
         <div className="auth-divider"><span>or sign in with email</span></div>
 
-        <form onSubmit={handleSubmit}>
+        {error && (
+          <div className="alert alert-error" style={{ marginBottom: '1rem' }}>
+            {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} noValidate>
           <div className="input-group">
             <label>Email Address</label>
             <div className="input-wrapper">
@@ -111,9 +115,9 @@ export default function Login() {
             <Link to="/forgot-password">Forgot password?</Link>
           </div>
 
-          <motion.button type="submit" className="btn-primary" disabled={loading} whileTap={{ scale: 0.98 }}>
+          <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? 'Signing in...' : 'Sign In'}
-          </motion.button>
+          </button>
         </form>
 
         <p className="auth-footer">

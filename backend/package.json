@@ -6,6 +6,8 @@
     "start:dev": "nodemon",
     "build": "nest build",
     "seed": "ts-node src/prisma/seeds/admin.seed.ts",
+    "seed:menu": "ts-node src/prisma/seeds/menu.seed.ts",
+    "seed:all": "npm run seed && npm run seed:menu",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"

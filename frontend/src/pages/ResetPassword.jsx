@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Lock, Eye, EyeOff } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import API from '../api/axios';
-import ThreeBackground from '../components/ThreeBackground';
 
 import Logo from '../components/Logo';
 
@@ -35,7 +34,6 @@ export default function ResetPassword() {
   return (
     <div className="auth-page">
       <Toaster position="top-right" toastOptions={{ style: { fontFamily: 'Inter, sans-serif', fontSize: '0.88rem' } }} />
-      <ThreeBackground />
 
       <div className="auth-left">
         <motion.div className="auth-left-content" initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>

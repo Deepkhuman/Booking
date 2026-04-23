@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import Logo from '../components/Logo';
-import ThreeBackground from '../components/ThreeBackground';
 import API from '../api/axios';
 
 export default function VerifyEmail() {
@@ -19,7 +18,6 @@ export default function VerifyEmail() {
 
   return (
     <div className="auth-page">
-      <ThreeBackground />
 
       <div className="auth-left">
         <motion.div className="auth-left-content" initial={{ opacity: 0, x: -40 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.8 }}>

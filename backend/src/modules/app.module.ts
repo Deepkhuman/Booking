@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from './auth.module';
 import { BookingModule } from './booking.module';
 import { CategoryModule } from './category.module';
+import { MenuModule } from './menu.module';
 import { ServiceModule } from './service.module';
 import { ShopModule } from './shop.module';
 import { AppController } from '../controllers/app.controller';
@@ -17,11 +17,12 @@ import { AppController } from '../controllers/app.controller';
     PrismaModule,
     AuthModule,
     CategoryModule,
+    MenuModule,
     ShopModule,
     ServiceModule,
     BookingModule,
   ],
   controllers: [AppController],
-  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [],
 })
 export class AppModule {}

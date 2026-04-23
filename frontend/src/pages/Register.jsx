@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import API from '../api/axios';
-import ThreeBackground from '../components/ThreeBackground';
 import Logo from '../components/Logo';
 
 function getPasswordStrength(password) {
@@ -52,7 +51,6 @@ export default function Register() {
   return (
     <div className="auth-page">
       <Toaster position="top-right" toastOptions={{ style: { fontFamily: 'Inter, sans-serif', fontSize: '0.88rem' } }} />
-      <ThreeBackground />
 
       {/* Left Panel */}
       <div className="auth-left">

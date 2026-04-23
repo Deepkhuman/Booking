@@ -11,11 +11,11 @@ async function main() {
     return;
   }
 
-  const password = await bcrypt.hash('admin123', 10);
+  const password = await bcrypt.hash('Admin@123', 10);
 
   const admin = await prisma.user.create({
     data: {
-      name: 'Admin',
+      name: 'Admin',  
       email: 'admin@booking.com',
       password,
       role: Role.ADMIN,
