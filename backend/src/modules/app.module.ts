@@ -5,6 +5,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from './auth.module';
 import { BookingModule } from './booking.module';
+import { CategoryModule } from './category.module';
 import { ServiceModule } from './service.module';
 import { ShopModule } from './shop.module';
 import { AppController } from '../controllers/app.controller';
@@ -15,6 +16,7 @@ import { AppController } from '../controllers/app.controller';
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 5 }]),
     PrismaModule,
     AuthModule,
+    CategoryModule,
     ShopModule,
     ServiceModule,
     BookingModule,
