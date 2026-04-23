@@ -9,17 +9,16 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
       clientID: process.env.FACEBOOK_APP_ID!,
       clientSecret: process.env.FACEBOOK_APP_SECRET!,
       callbackURL: process.env.FACEBOOK_CALLBACK_URL!,
-      scope: ['email'],
-      profileFields: ['id', 'displayName', 'emails', 'photos'],
+      profileFields: ['id', 'displayName', 'photos'],
     });
   }
 
   validate(accessToken: string, refreshToken: string, profile: Profile, done: Function) {
-    const { id, displayName, emails, photos } = profile;
+    const { id, displayName, photos } = profile;
     done(null, {
       facebookId: id,
       name: displayName,
-      email: emails?.[0]?.value,
+      email: `fb_${id}@plugin.com`,
       avatar: photos?.[0]?.value,
     });
   }

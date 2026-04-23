@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { ForgotPasswordDto, LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto } from '../dto/auth.dto';
 import { GoogleAuthGuard, FacebookAuthGuard } from '../guards/social-auth.guard';
@@ -51,8 +51,11 @@ export class AuthController {
 
   @Get('google/callback')
   @UseGuards(GoogleAuthGuard)
-  googleCallback(@Req() req: any) {
-    return this.authService.socialLogin(req.user);
+  async googleCallback(@Req() req: any, @Res() res: any) {
+    const data = await this.authService.socialLogin(req.user);
+    return res.redirect(
+      `http://localhost:5173/social-callback?accessToken=${data.accessToken}&refreshToken=${data.refreshToken}&user=${encodeURIComponent(JSON.stringify({ id: data.id, name: data.name, email: data.email, role: data.role, avatar: data.avatar }))}`
+    );
   }
 
   // Facebook OAuth
@@ -62,7 +65,10 @@ export class AuthController {
 
   @Get('facebook/callback')
   @UseGuards(FacebookAuthGuard)
-  facebookCallback(@Req() req: any) {
-    return this.authService.socialLogin(req.user);
+  async facebookCallback(@Req() req: any, @Res() res: any) {
+    const data = await this.authService.socialLogin(req.user);
+    return res.redirect(
+      `http://localhost:5173/social-callback?accessToken=${data.accessToken}&refreshToken=${data.refreshToken}&user=${encodeURIComponent(JSON.stringify({ id: data.id, name: data.name, email: data.email, role: data.role, avatar: data.avatar }))}`
+    );
   }
 }
