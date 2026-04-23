@@ -7,7 +7,7 @@ import { BookingModule } from './booking.module';
 import { CategoryModule } from './category.module';
 import { MenuModule } from './menu.module';
 import { ServiceModule } from './service.module';
-import { ShopModule } from './shop.module';
+import { VendorModule } from './vendor.module';
 import { AppController } from '../controllers/app.controller';
 
 @Module({
@@ -18,7 +18,7 @@ import { AppController } from '../controllers/app.controller';
     AuthModule,
     CategoryModule,
     MenuModule,
-    ShopModule,
+    VendorModule,
     ServiceModule,
     BookingModule,
   ],
