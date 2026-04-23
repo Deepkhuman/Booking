@@ -1,15 +1,53 @@
-import { IsNumber, IsString } from 'class-validator';
+import {
+  IsString, IsOptional, IsNumber, IsBoolean,
+  IsNotEmpty, Min, IsPositive,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CreateServiceDto {
-  @IsNumber()
-  shopId!: number;
-
+  @IsNotEmpty()
   @IsString()
   name!: string;
 
-  @IsNumber()
-  duration!: number;
+  @IsOptional()
+  @IsString()
+  description?: string;
 
+  @IsNotEmpty()
+  @Type(() => Number)
   @IsNumber()
+  @IsPositive()
   price!: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  duration?: number;
+}
+
+export class UpdateServiceDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  description?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @IsPositive()
+  price?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  duration?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }
