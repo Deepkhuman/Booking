@@ -1,8 +1,6 @@
-import {
-  Injectable, NotFoundException, BadRequestException,
-  ForbiddenException, Logger,
-} from '@nestjs/common';
-import Razorpay from 'razorpay';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Logger } from '@nestjs/common';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const Razorpay = require('razorpay');
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaymentIntentDto, RefundPaymentDto, VerifyPaymentDto } from '../dto/payment.dto';
@@ -10,7 +8,7 @@ import { BookingStatus, PaymentStatus, PaymentTransactionStatus } from '@prisma/
 
 @Injectable()
 export class PaymentService {
-  private razorpay: Razorpay;
+  private razorpay: any;
   private readonly logger = new Logger(PaymentService.name);
 
   constructor(private prisma: PrismaService) {

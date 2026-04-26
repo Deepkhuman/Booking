@@ -25,7 +25,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor());
   app.enableCors({ origin: 'http://localhost:5173', credentials: true });
 
-  const port = await getAvailablePort(Number(process.env.PORT) || 3000);
+  const port = await getAvailablePort(Number(process.env.PORT) || 8000);
   await app.listen(port);
   console.log(`Server running on port ${port}`);
 }
