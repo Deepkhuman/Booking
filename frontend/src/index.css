@@ -1266,3 +1266,138 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   border: 1px solid rgba(217,119,6,0.2);
   color: #92400e;
 }
+
+/* ─────────────────────────────────────────
+   EXPLORE FILTERS
+───────────────────────────────────────── */
+.explore-filters {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+@media (max-width: 768px) { .explore-filters { flex-direction: column; } .explore-filters > * { width: 100%; } }
+
+/* ─────────────────────────────────────────
+   VENDOR CARDS
+───────────────────────────────────────── */
+.vendor-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.vendor-card {
+  display: block;
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-decoration: none;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.vendor-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+.vendor-card-cover {
+  height: 140px;
+  background: var(--bg-secondary);
+  position: relative;
+  overflow: hidden;
+}
+.vendor-card-cover img { width: 100%; height: 100%; object-fit: cover; }
+.vendor-card-cover-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+
+.vendor-featured-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(107,39,55,0.9);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 100px;
+}
+
+.vendor-card-body { padding: 1rem; }
+
+.vendor-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--maroon), var(--rose));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  flex-shrink: 0;
+  overflow: hidden;
+  border: 2px solid var(--warm-white);
+}
+.vendor-logo img { width: 100%; height: 100%; object-fit: cover; }
+.vendor-logo--lg { width: 56px; height: 56px; font-size: 1.3rem; border-radius: 14px; }
+
+.vendor-name { font-size: 0.95rem; font-weight: 600; color: var(--text); margin-bottom: 0.1rem; }
+.vendor-category { font-size: 0.78rem; color: var(--text-muted); }
+.vendor-desc { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.5; margin: 0.6rem 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.vendor-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; font-size: 0.78rem; color: var(--text-muted); }
+
+/* ─────────────────────────────────────────
+   VENDOR DETAIL
+───────────────────────────────────────── */
+.vendor-detail-cover {
+  height: 200px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 1.25rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+}
+.vendor-detail-cover img { width: 100%; height: 100%; object-fit: cover; }
+.vendor-detail-cover-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+
+.vendor-detail-layout {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+@media (max-width: 900px) { .vendor-detail-layout { grid-template-columns: 1fr; } }
+
+.service-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 0;
+  border-bottom: 1px solid var(--border);
+}
+.service-list-item:last-child { border-bottom: none; }
+
+/* ─────────────────────────────────────────
+   SLOT PICKER
+───────────────────────────────────────── */
+.slots-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.slot-btn {
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  border: 1.5px solid var(--border);
+  background: var(--warm-white);
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.slot-btn:hover:not(:disabled) { border-color: var(--maroon); color: var(--maroon); background: var(--maroon-pale); }
+.slot-btn--selected { background: var(--maroon); border-color: var(--maroon); color: white; }
+.slot-btn--taken { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }

@@ -15,6 +15,10 @@ import VendorProfile from './pages/vendor/Profile';
 import VendorServices from './pages/vendor/Services';
 import VendorBookings from './pages/vendor/Bookings';
 import BusinessHours from './pages/vendor/BusinessHours';
+import CustomerDashboard from './pages/customer/Dashboard';
+import Explore from './pages/customer/Explore';
+import VendorDetail from './pages/customer/VendorDetail';
+import CustomerBookings from './pages/customer/Bookings';
 import { useLocation } from 'react-router-dom';
 import { memo } from 'react';
 
@@ -44,11 +48,10 @@ function App() {
           <Route path="/social-callback" element={<SocialCallback />} />
 
           {/* Protected routes */}
-          <Route path="/customer-dashboard" element={
-            <ProtectedRoute roles={['CUSTOMER']}>
-              <div style={{ padding: '2rem', fontFamily: 'Inter' }}>Customer Dashboard — Coming Soon</div>
-            </ProtectedRoute>
-          } />
+          <Route path="/customer-dashboard" element={<ProtectedRoute roles={['CUSTOMER']}><CustomerDashboard /></ProtectedRoute>} />
+          <Route path="/customer-dashboard/explore" element={<ProtectedRoute roles={['CUSTOMER']}><Explore /></ProtectedRoute>} />
+          <Route path="/customer-dashboard/vendor/:id" element={<ProtectedRoute roles={['CUSTOMER']}><VendorDetail /></ProtectedRoute>} />
+          <Route path="/customer-dashboard/bookings" element={<ProtectedRoute roles={['CUSTOMER']}><CustomerBookings /></ProtectedRoute>} />
           <Route path="/vendor-dashboard" element={<ProtectedRoute roles={['VENDOR']}><VendorDashboard /></ProtectedRoute>} />
           <Route path="/vendor-dashboard/profile" element={<ProtectedRoute roles={['VENDOR']}><VendorProfile /></ProtectedRoute>} />
           <Route path="/vendor-dashboard/services" element={<ProtectedRoute roles={['VENDOR']}><VendorServices /></ProtectedRoute>} />
