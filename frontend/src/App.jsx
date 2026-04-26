@@ -20,6 +20,7 @@ import Explore from './pages/customer/Explore';
 import VendorDetail from './pages/customer/VendorDetail';
 import CustomerBookings from './pages/customer/Bookings';
 import CustomerProfile from './pages/customer/Profile';
+import CustomerPayments from './pages/customer/Payments';
 import { useLocation } from 'react-router-dom';
 import { memo } from 'react';
 
@@ -54,6 +55,7 @@ function App() {
           <Route path="/customer-dashboard/vendor/:id" element={<ProtectedRoute roles={['CUSTOMER']}><VendorDetail /></ProtectedRoute>} />
           <Route path="/customer-dashboard/bookings" element={<ProtectedRoute roles={['CUSTOMER']}><CustomerBookings /></ProtectedRoute>} />
           <Route path="/customer-dashboard/profile" element={<ProtectedRoute roles={['CUSTOMER']}><CustomerProfile /></ProtectedRoute>} />
+          <Route path="/customer-dashboard/payments" element={<ProtectedRoute roles={['CUSTOMER']}><CustomerPayments /></ProtectedRoute>} />
           <Route path="/vendor-dashboard" element={<ProtectedRoute roles={['VENDOR']}><VendorDashboard /></ProtectedRoute>} />
           <Route path="/vendor-dashboard/profile" element={<ProtectedRoute roles={['VENDOR']}><VendorProfile /></ProtectedRoute>} />
           <Route path="/vendor-dashboard/services" element={<ProtectedRoute roles={['VENDOR']}><VendorServices /></ProtectedRoute>} />

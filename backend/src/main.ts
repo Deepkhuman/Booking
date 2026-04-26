@@ -17,7 +17,7 @@ function getAvailablePort(startPort: number): Promise<number> {
 }
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { rawBody: true });
 
   app.setGlobalPrefix('api', { exclude: ['/'] });
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));

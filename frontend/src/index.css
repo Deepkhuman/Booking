@@ -1698,3 +1698,18 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   background-color: var(--maroon) !important;
   border-color: var(--maroon) !important;
 }
+
+/* ─────────────────────────────────────────
+   PAYMENT PAGE
+───────────────────────────────────────── */
+.payment-pending-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  gap: 1rem;
+}
+.payment-pending-row:hover { border-color: var(--maroon); }

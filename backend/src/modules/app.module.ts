@@ -8,6 +8,7 @@ import { CategoryModule } from './category.module';
 import { MenuModule } from './menu.module';
 import { ServiceModule } from './service.module';
 import { VendorModule } from './vendor.module';
+import { PaymentModule } from './payment.module';
 import { AppController } from '../controllers/app.controller';
 import { UserController } from '../controllers/user.controller';
 import { CloudinaryService } from '../services/cloudinary.service';
@@ -23,6 +24,7 @@ import { CloudinaryService } from '../services/cloudinary.service';
     VendorModule,
     ServiceModule,
     BookingModule,
+    PaymentModule,
   ],
   controllers: [AppController, UserController],
   providers: [CloudinaryService],

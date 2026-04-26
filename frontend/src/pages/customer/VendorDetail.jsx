@@ -67,10 +67,10 @@ export default function VendorDetail() {
       if (vendor.bookingType === 'DAILY') { payload.checkIn = booking.checkIn; payload.checkOut = booking.checkOut; }
       if (vendor.bookingType === 'NO_BOOKING') { payload.quantity = Number(booking.quantity); }
 
-      await API.post('/bookings', payload);
-      toast.success('Booking created! Awaiting vendor confirmation.');
+      const res = await API.post('/bookings', payload);
+      toast.success('Booking created! Proceed to payment.');
       setShowBooking(false);
-      navigate('/customer-dashboard/bookings');
+      navigate(`/customer-dashboard/payments?bookingId=${res.data.data?.id}`);
     } catch (e) {
       toast.error(e.response?.data?.message || 'Booking failed');
     } finally {

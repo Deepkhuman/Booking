@@ -23,8 +23,9 @@ const menuItems = [
   // CUSTOMER menu
   { label: 'Home', icon: 'Home', path: '/customer-dashboard', order: 1, roles: [Role.CUSTOMER] },
   { label: 'My Bookings', icon: 'CalendarDays', path: '/customer-dashboard/bookings', order: 2, roles: [Role.CUSTOMER] },
-  { label: 'Explore', icon: 'Compass', path: '/customer-dashboard/explore', order: 3, roles: [Role.CUSTOMER] },
-  { label: 'Profile', icon: 'UserCircle', path: '/customer-dashboard/profile', order: 4, roles: [Role.CUSTOMER] },
+  { label: 'Payments', icon: 'CreditCard', path: '/customer-dashboard/payments', order: 3, roles: [Role.CUSTOMER] },
+  { label: 'Explore', icon: 'Compass', path: '/customer-dashboard/explore', order: 4, roles: [Role.CUSTOMER] },
+  { label: 'Profile', icon: 'UserCircle', path: '/customer-dashboard/profile', order: 5, roles: [Role.CUSTOMER] },
 ];
 
 async function main() {
