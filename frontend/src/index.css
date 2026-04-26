@@ -1555,3 +1555,45 @@ textarea.input-field { resize: vertical; min-height: 80px; }
 .pw-req svg { flex-shrink: 0; }
 .pw-req--ok { color: #16a34a; }
 .pw-req--ok svg { color: #16a34a; }
+
+/* ─────────────────────────────────────────
+   PROFILE 2-COLUMN LAYOUT
+───────────────────────────────────────── */
+.profile-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  align-items: start;
+}
+@media (max-width: 1024px) { .profile-layout { grid-template-columns: 1fr; } }
+
+.profile-left { display: flex; flex-direction: column; }
+.profile-right { display: flex; flex-direction: column; }
+
+.profile-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
+  gap: 1rem;
+}
+.profile-summary-row:last-child { border-bottom: none; }
+
+.profile-summary-label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.profile-summary-value {
+  font-size: 0.85rem;
+  color: var(--text);
+  font-weight: 500;
+  text-align: right;
+  word-break: break-all;
+}
