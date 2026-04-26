@@ -10,6 +10,7 @@ import { ServiceModule } from './service.module';
 import { VendorModule } from './vendor.module';
 import { AppController } from '../controllers/app.controller';
 import { UserController } from '../controllers/user.controller';
+import { CloudinaryService } from '../services/cloudinary.service';
 
 @Module({
   imports: [
@@ -24,6 +25,6 @@ import { UserController } from '../controllers/user.controller';
     BookingModule,
   ],
   controllers: [AppController, UserController],
-  providers: [],
+  providers: [CloudinaryService],
 })
 export class AppModule {}
