@@ -9,9 +9,8 @@ import { MenuModule } from './menu.module';
 import { ServiceModule } from './service.module';
 import { VendorModule } from './vendor.module';
 import { PaymentModule } from './payment.module';
+import { UserModule } from './user.module';
 import { AppController } from '../controllers/app.controller';
-import { UserController } from '../controllers/user.controller';
-import { CloudinaryService } from '../services/cloudinary.service';
 
 @Module({
   imports: [
@@ -25,8 +24,9 @@ import { CloudinaryService } from '../services/cloudinary.service';
     ServiceModule,
     BookingModule,
     PaymentModule,
+    UserModule,
   ],
-  controllers: [AppController, UserController],
-  providers: [CloudinaryService],
+  controllers: [AppController],
+  providers: [],
 })
 export class AppModule {}
