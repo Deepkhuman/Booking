@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Phone, Globe, Clock, X, CheckCircle, Store } from 'lucide-react';
+import { MapPin, Phone, Globe, Clock, X, CheckCircle, Store, ArrowLeft } from 'lucide-react';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -10,6 +10,7 @@ const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 export default function VendorDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [vendor, setVendor] = useState(null);
   const [loading, setLoading] = useState(true);
   const [selectedService, setSelectedService] = useState(null);
@@ -69,6 +70,7 @@ export default function VendorDetail() {
       await API.post('/bookings', payload);
       toast.success('Booking created! Awaiting vendor confirmation.');
       setShowBooking(false);
+      navigate('/customer-dashboard/bookings');
     } catch (e) {
       toast.error(e.response?.data?.message || 'Booking failed');
     } finally {
@@ -82,6 +84,12 @@ export default function VendorDetail() {
   return (
     <DashboardLayout>
       <div className="dashboard-content">
+        <motion.div className="dashboard-header" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+          <button onClick={() => navigate(-1)} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', fontSize: '0.85rem', marginBottom: '1rem', padding: 0 }}>
+            <ArrowLeft size={15} /> Back
+          </button>
+        </motion.div>
+
         {/* Cover */}
         <motion.div className="vendor-detail-cover" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           {vendor.coverImage ? <img src={vendor.coverImage} alt={vendor.businessName} /> : <div className="vendor-detail-cover-placeholder"><Store size={48} /></div>}

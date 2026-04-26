@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Search, MapPin, Store } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -15,7 +15,8 @@ export default function Explore() {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
-  const [category, setCategory] = useState('');
+  const [searchParams] = useSearchParams();
+  const [category, setCategory] = useState(searchParams.get('category') || '');
   const [city, setCity] = useState('');
 
   const load = useCallback(async () => {

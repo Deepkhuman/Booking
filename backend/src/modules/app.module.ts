@@ -9,6 +9,7 @@ import { MenuModule } from './menu.module';
 import { ServiceModule } from './service.module';
 import { VendorModule } from './vendor.module';
 import { AppController } from '../controllers/app.controller';
+import { UserController } from '../controllers/user.controller';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { AppController } from '../controllers/app.controller';
     ServiceModule,
     BookingModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, UserController],
   providers: [],
 })
 export class AppModule {}

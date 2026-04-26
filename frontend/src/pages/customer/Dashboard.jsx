@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, CheckCircle, Clock, XCircle, Compass } from 'lucide-react';
+import { CalendarDays, CheckCircle, Clock, XCircle, Compass, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import StatsCard from '../../components/dashboard/StatsCard';
@@ -13,23 +13,26 @@ const STATUS_COLORS = { PENDING: '#d97706', CONFIRMED: '#2563eb', COMPLETED: '#1
 export default function CustomerDashboard() {
   const { user } = useAuth();
   const [bookings, setBookings] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [stats, setStats] = useState({ total: 0, pending: 0, confirmed: 0, completed: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    API.get('/bookings/mine?limit=5')
-      .then(res => {
-        const data = res.data.data?.data || [];
-        const meta = res.data.data?.meta || {};
-        setBookings(data);
-        setStats({
-          total: meta.total || 0,
-          pending: data.filter(b => b.status === 'PENDING').length,
-          confirmed: data.filter(b => b.status === 'CONFIRMED').length,
-          completed: data.filter(b => b.status === 'COMPLETED').length,
-        });
-      })
-      .catch(() => toast.error('Failed to load bookings'))
+    Promise.all([
+      API.get('/bookings/mine?limit=5').catch(() => ({ data: { data: { data: [], meta: {} } } })),
+      API.get('/categories').catch(() => ({ data: { data: [] } })),
+    ]).then(([bookRes, catRes]) => {
+      const data = bookRes.data.data?.data || [];
+      const meta = bookRes.data.data?.meta || {};
+      setBookings(data);
+      setCategories(catRes.data.data?.slice(0, 6) || []);
+      setStats({
+        total: meta.total || 0,
+        pending: data.filter(b => b.status === 'PENDING').length,
+        confirmed: data.filter(b => b.status === 'CONFIRMED').length,
+        completed: data.filter(b => b.status === 'COMPLETED').length,
+      });
+    }).catch(() => toast.error('Failed to load dashboard'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -59,7 +62,25 @@ export default function CustomerDashboard() {
           <StatsCard title="Completed" value={stats.completed} icon={<CheckCircle size={20} />} color="#16a34a" delay={0.3} />
         </div>
 
-        <motion.div className="dashboard-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+        {/* Category Quick Links */}
+        {categories.length > 0 && (
+          <motion.div className="dashboard-card" style={{ marginBottom: '1.25rem' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+            <div className="dashboard-card-header">
+              <h2 className="dashboard-card-title">Browse by Category</h2>
+              <Link to="/customer-dashboard/explore" style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.82rem', color: 'var(--maroon)', textDecoration: 'none', fontWeight: 600 }}>All <ArrowRight size={13} /></Link>
+            </div>
+            <div className="category-quick-links">
+              {categories.map(c => (
+                <Link key={c.id} to={`/customer-dashboard/explore?category=${c.slug}`} className="category-chip">
+                  {c.icon && <span>{c.icon}</span>}
+                  <span>{c.name}</span>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
+        <motion.div className="dashboard-card" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
           <div className="dashboard-card-header">
             <h2 className="dashboard-card-title">Recent Bookings</h2>
             <Link to="/customer-dashboard/bookings" className="filter-pill active" style={{ textDecoration: 'none' }}>View all</Link>
