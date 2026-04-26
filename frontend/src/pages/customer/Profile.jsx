@@ -192,16 +192,16 @@ export default function CustomerProfile() {
               ) : (
                 <form onSubmit={handlePasswordSubmit}>
                   {[
-                    { key: 'currentPassword', label: 'Current Password', placeholder: 'Enter current password' },
-                    { key: 'newPassword', label: 'New Password', placeholder: 'Min 8 chars, uppercase, number, special' },
-                    { key: 'confirmPassword', label: 'Confirm New Password', placeholder: 'Repeat new password' },
-                  ].map(({ key, label, placeholder }) => (
+                    { key: 'currentPassword', showKey: 'current', label: 'Current Password', placeholder: 'Enter current password' },
+                    { key: 'newPassword', showKey: 'new', label: 'New Password', placeholder: 'Min 8 chars, uppercase, number, special' },
+                    { key: 'confirmPassword', showKey: 'confirm', label: 'Confirm New Password', placeholder: 'Repeat new password' },
+                  ].map(({ key, showKey, label, placeholder }) => (
                     <div className="input-group" key={key}>
                       <label>{label}</label>
                       <div className="input-wrapper">
                         <input
                           className="input-field"
-                          type={showPw[key.replace('Password', '').replace('current', 'current').replace('new', 'new').replace('confirm', 'confirm')] ? 'text' : 'password'}
+                          type={showPw[showKey] ? 'text' : 'password'}
                           value={pwForm[key]}
                           onChange={e => {
                             setPwForm(f => ({ ...f, [key]: e.target.value }));
@@ -212,11 +212,8 @@ export default function CustomerProfile() {
                           style={key === 'confirmPassword' && pwForm.confirmPassword && pwForm.confirmPassword !== pwForm.newPassword ? { borderColor: '#dc2626' } : {}}
                         />
                         <button type="button" className="input-eye"
-                          onClick={() => {
-                            const k = key === 'currentPassword' ? 'current' : key === 'newPassword' ? 'new' : 'confirm';
-                            setShowPw(s => ({ ...s, [k]: !s[k] }));
-                          }}>
-                          {showPw[key === 'currentPassword' ? 'current' : key === 'newPassword' ? 'new' : 'confirm'] ? <EyeOff size={15} /> : <Eye size={15} />}
+                          onClick={() => setShowPw(s => ({ ...s, [showKey]: !s[showKey] }))}>
+                          {showPw[showKey] ? <EyeOff size={15} /> : <Eye size={15} />}
                         </button>
                       </div>
                       {key === 'newPassword' && pwForm.newPassword && (
