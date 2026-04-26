@@ -1597,3 +1597,104 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   text-align: right;
   word-break: break-all;
 }
+
+/* ─────────────────────────────────────────
+   IMAGE CROP MODAL
+───────────────────────────────────────── */
+.crop-modal {
+  background: var(--warm-white);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 520px;
+  box-shadow: var(--shadow-lg);
+}
+
+.crop-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 1.25rem;
+}
+
+.crop-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #1a1a1a;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  min-height: 200px;
+  margin-bottom: 1.25rem;
+}
+
+.crop-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.crop-control-group {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.crop-ctrl-btn {
+  background: var(--warm-white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.crop-ctrl-btn:hover { border-color: var(--maroon); color: var(--maroon); }
+
+.crop-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.crop-slider {
+  flex: 1;
+  height: 4px;
+  accent-color: var(--maroon);
+  cursor: pointer;
+}
+
+.crop-slider-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+  min-width: 36px;
+  text-align: right;
+}
+
+.crop-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* Override react-image-crop circle style */
+.ReactCrop__crop-selection {
+  border-color: var(--maroon) !important;
+}
+.ReactCrop__drag-handle::after {
+  background-color: var(--maroon) !important;
+  border-color: var(--maroon) !important;
+}

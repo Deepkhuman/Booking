@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Save, Camera, Lock, Shield, CheckCircle, AlertCircle, Eye, EyeOff, LogOut, User, Calendar, Mail, Phone, Globe } from 'lucide-react';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
+import ImageCropModal from '../../components/ImageCropModal';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -17,6 +18,7 @@ export default function CustomerProfile() {
   const [info, setInfo] = useState({ name: '', phone: '' });
   const [savingInfo, setSavingInfo] = useState(false);
   const [avatarUploading, setAvatarUploading] = useState(false);
+  const [cropSrc, setCropSrc] = useState(null);
   const [pwForm, setPwForm] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' });
   const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
   const [savingPw, setSavingPw] = useState(false);
@@ -58,12 +60,19 @@ export default function CustomerProfile() {
     }
   };
 
-  const handleAvatarUpload = async (file) => {
+  const handleAvatarUpload = (file) => {
     if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setCropSrc(reader.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropDone = async (croppedFile) => {
+    setCropSrc(null);
     setAvatarUploading(true);
     try {
       const fd = new FormData();
-      fd.append('avatar', file);
+      fd.append('avatar', croppedFile);
       const res = await API.post('/users/me/avatar', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       const updated = res.data.data;
       setProfile(p => ({ ...p, avatar: updated.avatar }));
@@ -104,6 +113,15 @@ export default function CustomerProfile() {
 
   return (
     <DashboardLayout>
+      {cropSrc && (
+        <ImageCropModal
+          src={cropSrc}
+          aspect={1}
+          shape="circle"
+          onDone={handleCropDone}
+          onClose={() => setCropSrc(null)}
+        />
+      )}
       <div className="dashboard-content">
         <motion.div className="dashboard-header" initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
           <div>
