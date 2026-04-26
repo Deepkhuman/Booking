@@ -54,6 +54,13 @@ export default function ImageCropModal({ src, aspect = 1, onDone, onClose, shape
   const [rotate, setRotate] = useState(0);
   const [applying, setApplying] = useState(false);
 
+  // reset state every time a new src comes in
+  const prevSrc = useRef();
+  if (prevSrc.current !== src) {
+    prevSrc.current = src;
+    // these will be set fresh by onImageLoad
+  }
+
   const onImageLoad = useCallback((e) => {
     const { width, height } = e.currentTarget;
     setCrop(centerAspectCrop(width, height, aspect));

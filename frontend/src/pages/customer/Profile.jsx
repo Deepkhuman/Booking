@@ -115,6 +115,7 @@ export default function CustomerProfile() {
     <DashboardLayout>
       {cropSrc && (
         <ImageCropModal
+          key={cropSrc}
           src={cropSrc}
           aspect={1}
           shape="circle"
@@ -155,7 +156,7 @@ export default function CustomerProfile() {
                   <button className="profile-avatar-btn" onClick={() => fileRef.current?.click()} disabled={avatarUploading} title="Change photo">
                     {avatarUploading ? '…' : <Camera size={13} />}
                   </button>
-                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => handleAvatarUpload(e.target.files?.[0])} />
+                  <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={e => { handleAvatarUpload(e.target.files?.[0]); e.target.value = ''; }} />
                 </div>
                 <div>
                   <p className="profile-name">{profile?.name || 'Your Name'}</p>
