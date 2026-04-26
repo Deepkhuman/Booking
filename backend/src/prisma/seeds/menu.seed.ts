@@ -14,20 +14,17 @@ const menuItems = [
   { label: 'Audit Log', icon: 'ScrollText', path: '/admin/audit-log', order: 8, roles: [Role.ADMIN] },
 
   // VENDOR menu
-  { label: 'Dashboard', icon: 'LayoutDashboard', path: '/vendor/dashboard', order: 1, roles: [Role.VENDOR] },
-  { label: 'My Services', icon: 'Briefcase', path: '/vendor/services', order: 2, roles: [Role.VENDOR] },
-  { label: 'Bookings', icon: 'CalendarDays', path: '/vendor/bookings', order: 3, roles: [Role.VENDOR] },
-  { label: 'Reviews', icon: 'Star', path: '/vendor/reviews', order: 4, roles: [Role.VENDOR] },
-  { label: 'Analytics', icon: 'BarChart2', path: '/vendor/analytics', order: 5, roles: [Role.VENDOR] },
-  { label: 'Profile', icon: 'UserCircle', path: '/vendor/profile', order: 6, roles: [Role.VENDOR] },
-  { label: 'Business Hours', icon: 'Clock', path: '/vendor/hours', order: 7, roles: [Role.VENDOR] },
+  { label: 'Dashboard', icon: 'LayoutDashboard', path: '/vendor-dashboard', order: 1, roles: [Role.VENDOR] },
+  { label: 'My Services', icon: 'Briefcase', path: '/vendor-dashboard/services', order: 2, roles: [Role.VENDOR] },
+  { label: 'Bookings', icon: 'CalendarDays', path: '/vendor-dashboard/bookings', order: 3, roles: [Role.VENDOR] },
+  { label: 'Business Hours', icon: 'Clock', path: '/vendor-dashboard/business-hours', order: 4, roles: [Role.VENDOR] },
+  { label: 'Profile', icon: 'UserCircle', path: '/vendor-dashboard/profile', order: 5, roles: [Role.VENDOR] },
 
   // CUSTOMER menu
-  { label: 'Home', icon: 'Home', path: '/customer/home', order: 1, roles: [Role.CUSTOMER] },
-  { label: 'My Bookings', icon: 'CalendarDays', path: '/customer/bookings', order: 2, roles: [Role.CUSTOMER] },
-  { label: 'Explore', icon: 'Compass', path: '/customer/explore', order: 3, roles: [Role.CUSTOMER] },
-  { label: 'Reviews', icon: 'Star', path: '/customer/reviews', order: 4, roles: [Role.CUSTOMER] },
-  { label: 'Profile', icon: 'UserCircle', path: '/customer/profile', order: 5, roles: [Role.CUSTOMER] },
+  { label: 'Home', icon: 'Home', path: '/customer-dashboard', order: 1, roles: [Role.CUSTOMER] },
+  { label: 'My Bookings', icon: 'CalendarDays', path: '/customer-dashboard/bookings', order: 2, roles: [Role.CUSTOMER] },
+  { label: 'Explore', icon: 'Compass', path: '/customer-dashboard/explore', order: 3, roles: [Role.CUSTOMER] },
+  { label: 'Profile', icon: 'UserCircle', path: '/customer-dashboard/profile', order: 4, roles: [Role.CUSTOMER] },
 ];
 
 async function main() {

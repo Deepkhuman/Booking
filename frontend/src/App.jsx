@@ -10,6 +10,11 @@ import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import SocialCallback from './pages/SocialCallback';
 import AdminDashboard from './pages/admin/Dashboard';
+import VendorDashboard from './pages/vendor/Dashboard';
+import VendorProfile from './pages/vendor/Profile';
+import VendorServices from './pages/vendor/Services';
+import VendorBookings from './pages/vendor/Bookings';
+import BusinessHours from './pages/vendor/BusinessHours';
 import { useLocation } from 'react-router-dom';
 import { memo } from 'react';
 
@@ -44,11 +49,11 @@ function App() {
               <div style={{ padding: '2rem', fontFamily: 'Inter' }}>Customer Dashboard — Coming Soon</div>
             </ProtectedRoute>
           } />
-          <Route path="/vendor-dashboard" element={
-            <ProtectedRoute roles={['VENDOR']}>
-              <div style={{ padding: '2rem', fontFamily: 'Inter' }}>Vendor Dashboard — Coming Soon</div>
-            </ProtectedRoute>
-          } />
+          <Route path="/vendor-dashboard" element={<ProtectedRoute roles={['VENDOR']}><VendorDashboard /></ProtectedRoute>} />
+          <Route path="/vendor-dashboard/profile" element={<ProtectedRoute roles={['VENDOR']}><VendorProfile /></ProtectedRoute>} />
+          <Route path="/vendor-dashboard/services" element={<ProtectedRoute roles={['VENDOR']}><VendorServices /></ProtectedRoute>} />
+          <Route path="/vendor-dashboard/bookings" element={<ProtectedRoute roles={['VENDOR']}><VendorBookings /></ProtectedRoute>} />
+          <Route path="/vendor-dashboard/business-hours" element={<ProtectedRoute roles={['VENDOR']}><BusinessHours /></ProtectedRoute>} />
           <Route path="/admin-dashboard" element={
             <ProtectedRoute roles={['ADMIN']}>
               <AdminDashboard />
