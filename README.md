@@ -375,6 +375,7 @@ SERVICE_DISABLED      SERVICE_ENABLED
 | Multer + Cloudinary | File uploads |
 | Redis | Caching + Socket adapter |
 | @nestjs/throttler | Rate limiting |
+| @nestjs/schedule | Cron jobs + automation bots |
 | class-validator | DTO validation |
 | Nodemailer | Email (verify, reset password) |
 
@@ -463,11 +464,15 @@ frontend/
 - [x] Step 14 — Frontend: Admin users, vendors, services, reviews, audit log
 - [x] Step 15 — Frontend: Vendor dashboard, profile, services, bookings, business hours
 - [x] Step 16 — Frontend: Customer dashboard, explore, vendor detail, bookings, payments, profile
-- [ ] Step 17 — Frontend: Missing pages (see gaps below)
-- [ ] Step 18 — Public vendor profile page (`/v/:slug`)
-- [ ] Step 19 — Swagger API docs
-- [ ] Step 20 — Docker Compose setup
-- [ ] Step 21 — Production deployment
+- [x] Step 17 — Native ads / sponsored vendor system
+- [ ] Step 18 — Bot & automation system (Phase 1 — critical crons)
+- [ ] Step 19 — Frontend: Missing pages (admin categories, vendor reviews, notifications, etc.)
+- [ ] Step 20 — Public vendor profile page (`/v/:slug`)
+- [ ] Step 21 — Bot Phase 2 (engagement bots + email templates)
+- [ ] Step 22 — Bot Phase 3 (security bots + admin security dashboard)
+- [ ] Step 23 — Swagger API docs
+- [ ] Step 24 — Docker Compose setup
+- [ ] Step 25 — Production deployment
 
 ---
 
@@ -495,6 +500,85 @@ frontend/
 
 ### Frontend — Public
 - `/v/:slug` — public vendor profile (shareable link for WhatsApp/Instagram)
+
+---
+
+## 🤖 Bot & Automation System
+
+> Built with `@nestjs/schedule` (cron jobs) + Redis (rate tracking) + Socket.io (real-time alerts)
+
+### 🔴 Phase 1 — Critical Crons (before launch)
+
+| # | Bot | Schedule | Action |
+|---|-----|----------|--------|
+| 1 | **Auto-Complete Bookings** | Every 30 mins | CONFIRMED bookings past date+time → mark COMPLETED |
+| 2 | **Auto No-Show** | Every 30 mins | PENDING bookings 2hrs past scheduled time → mark NO_SHOW |
+| 3 | **Auto-Cancel Stale Bookings** | Daily 1am | PENDING bookings older than 48hrs → CANCELLED + notify customer |
+| 4 | **Expire Sponsorships** | Every hour | `sponsoredUntil < now` → remove sponsorship |
+| 5 | **Cleanup Expired Tokens** | Daily 2am | Delete expired refresh tokens, reset tokens, verify tokens |
+| 6 | **Stale Notification Cleanup** | Weekly Sunday 3am | Delete read notifications older than 60 days |
+| 7 | **Orphan Record Cleanup** | Daily 3am | Hard delete soft-deleted records older than 30 days |
+| 8 | **Zero-Service Vendor Flag** | Daily 5am | Approved vendors with 0 active services → flag in DB |
+
+### 🟡 Phase 2 — Engagement Bots (after launch)
+
+| # | Bot | Schedule | Action |
+|---|-----|----------|--------|
+| 9 | **Booking Reminder — Customer** | Daily 8am | Bookings tomorrow → email customer |
+| 10 | **Booking Reminder — Vendor** | Daily 8am | Bookings tomorrow → email vendor |
+| 11 | **Weekly Admin Report** | Monday 7am | Stats email to admin (bookings, revenue, new vendors, users) |
+| 12 | **Vendor Inactivity Nudge** | Monday 9am | Vendors not logged in 14 days → reminder email |
+| 13 | **Sponsored Expiry Warning** | Daily 9am | Sponsorship expiring in 3 days → email vendor |
+| 14 | **Review Nudge** | Daily 10am | Completed bookings 24hrs ago with no review → email customer |
+| 15 | **Re-engagement Bot** | Sunday 10am | Customers with no booking in 30 days → "vendors near you" email |
+
+### 🛡️ Phase 3 — Security Bots (real-time, event-driven)
+
+| # | Bot | Trigger | Action |
+|---|-----|---------|--------|
+| 16 | **Brute Force Detector** | On failed login | 5 fails in 10 mins → lock account + alert admin |
+| 17 | **Token Abuse Detector** | On refresh token use | Same token from 2 different IPs → revoke all tokens + alert admin |
+| 18 | **Mass Booking Detector** | On booking create | 5+ bookings in 10 mins by same user → block user + alert admin |
+| 19 | **Suspicious Payment Detector** | On payment verify | 3+ payments in 5 mins by same user → flag + alert admin |
+| 20 | **Rating Bomb Detector** | On review create | Vendor gets 3+ reviews ≤ 2 stars in 1hr → hide reviews + alert admin |
+| 21 | **Fake Vendor Detector** | On vendor register | Same IP registers 2+ vendors → flag both + alert admin |
+
+### 📊 Phase 3 — Admin Alert Scans (scheduled)
+
+| # | Bot | Schedule | Action |
+|---|-----|----------|--------|
+| 22 | **Unusual Booking Spike** | Every hour | Bookings this hour > 5x average → alert admin |
+| 23 | **Unusual Revenue Spike** | Daily midnight | Revenue today > 3x daily average → alert admin |
+| 24 | **API Abuse Scanner** | Every 15 mins | Single IP > 500 requests in 15 mins → block IP + alert admin |
+| 25 | **Dormant Admin Check** | Monday 6am | Admin accounts not logged in 30 days → alert super admin |
+| 26 | **Platform Health Check** | Every 5 mins | Ping `/api/health` → if down, email admin |
+
+### 🎯 Phase 3 — Milestone & Engagement (event-driven)
+
+| # | Bot | Trigger | Action |
+|---|-----|---------|--------|
+| 27 | **Vendor Milestone Bot** | On booking complete | Vendor hits 10/50/100 bookings → congratulations notification |
+| 28 | **Low Rating Alert** | On review create | Vendor gets rating ≤ 2 → notify admin immediately |
+| 29 | **Payment Failure Retry** | On payment fail | 1hr after failed payment → remind customer to retry |
+| 30 | **Vendor Approved Welcome** | On vendor approve | Admin approves vendor → send welcome email with setup checklist |
+
+### Bot Implementation Stack
+
+```
+Cron jobs      → @nestjs/schedule  (inside NestJS app)
+Rate tracking  → Redis             (counters with TTL)
+Alert delivery → Socket.io         (real-time admin bell)
+               → Nodemailer        (email alerts)
+Audit trail    → AdminAction table (every bot action logged)
+```
+
+### Build Status
+
+| Phase | Status |
+|-------|--------|
+| Phase 1 — Critical crons (bots 1-8) | 🔄 In Progress |
+| Phase 2 — Engagement bots (bots 9-15) | ⏳ Planned |
+| Phase 3 — Security + admin alerts (bots 16-30) | ⏳ Planned |
 
 ---
 
@@ -576,7 +660,9 @@ chore:     package installs, config changes
 
 | Feature | Priority | Notes |
 |---------|----------|-------|
+| Sponsored vendor system (native ads) | 🔴 High | Admin sets tier + duration, auto-expires |
 | Public vendor profile (`/v/:slug`) | 🔴 High | Shareable link for WhatsApp/Instagram |
+| Bot system Phase 1 (critical crons) | 🔴 High | Auto-complete, no-show, cleanup, reminders |
 | Booking reminders (email/SMS) | 🔴 High | Reduces no-shows |
 | Vendor logo & cover upload | 🔴 High | Basic profile completeness |
 | Swagger API docs | 🟡 Medium | Developer experience |
