@@ -4,6 +4,7 @@ import { CalendarDays, Package, CheckCircle, Clock, XCircle, AlertCircle } from 
 import { Link } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import StatsCard from '../../components/dashboard/StatsCard';
+import NotificationBell from '../../components/dashboard/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -104,8 +105,11 @@ export default function VendorDashboard() {
               </span>
             </p>
           </div>
-          <div className="dashboard-date">
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <NotificationBell />
+            <div className="dashboard-date">
+              {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+            </div>
           </div>
         </motion.div>
 

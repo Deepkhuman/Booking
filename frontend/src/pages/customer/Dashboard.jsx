@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, CheckCircle, Clock, XCircle, Compass, ArrowRight } from 'lucide-react';
+import { CalendarDays, CheckCircle, Clock, Compass, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import StatsCard from '../../components/dashboard/StatsCard';
+import NotificationBell from '../../components/dashboard/NotificationBell';
 import { useAuth } from '../../context/AuthContext';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -50,9 +51,12 @@ export default function CustomerDashboard() {
             <h1 className="dashboard-title">Welcome back 👋</h1>
             <p className="dashboard-subtitle">{user?.name} · {user?.email}</p>
           </div>
-          <Link to="/customer-dashboard/explore" className="btn-primary" style={{ width: 'auto', padding: '0.65rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 0, textDecoration: 'none' }}>
-            <Compass size={16} /> Explore Vendors
-          </Link>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <NotificationBell />
+            <Link to="/customer-dashboard/explore" className="btn-primary" style={{ width: 'auto', padding: '0.65rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: 0, textDecoration: 'none' }}>
+              <Compass size={16} /> Explore Vendors
+            </Link>
+          </div>
         </motion.div>
 
         <div className="stats-grid">

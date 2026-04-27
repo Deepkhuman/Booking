@@ -498,6 +498,7 @@ h1, h2, h3 {
 .dashboard-main {
   flex: 1;
   overflow-y: auto;
+  min-height: 100vh;
 }
 
 .dashboard-content {
