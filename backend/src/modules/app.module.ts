@@ -10,6 +10,7 @@ import { ServiceModule } from './service.module';
 import { VendorModule } from './vendor.module';
 import { PaymentModule } from './payment.module';
 import { UserModule } from './user.module';
+import { ReviewModule } from './review.module';
 import { AppController } from '../controllers/app.controller';
 
 @Module({
@@ -25,6 +26,7 @@ import { AppController } from '../controllers/app.controller';
     BookingModule,
     PaymentModule,
     UserModule,
+    ReviewModule,
   ],
   controllers: [AppController],
   providers: [],

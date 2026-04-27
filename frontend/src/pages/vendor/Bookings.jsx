@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { CheckCircle, XCircle, Clock, CalendarDays } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, CalendarDays, MessageSquare, X } from 'lucide-react';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -8,12 +8,61 @@ import toast from 'react-hot-toast';
 const STATUSES = ['ALL', 'PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'];
 const STATUS_COLORS = { PENDING: '#d97706', CONFIRMED: '#2563eb', COMPLETED: '#16a34a', CANCELLED: '#dc2626', NO_SHOW: '#6b7280' };
 
+function ReplyModal({ review, onClose, onDone }) {
+  const [text, setText] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      await API.put(`/reviews/${review.id}/reply`, { vendorReply: text });
+      toast.success('Reply posted');
+      onDone(review.id, text);
+      onClose();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to reply');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+      <motion.div className="modal" style={{ maxWidth: 440 }} initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <h2 className="dashboard-card-title">Reply to Review</h2>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Customer said: "{review.comment || 'No comment'}"</p>
+          </div>
+          <button className="modal-close" onClick={onClose}><X size={18} /></button>
+        </div>
+        <form onSubmit={submit}>
+          <div className="input-group">
+            <label>Your Reply *</label>
+            <textarea className="input-field" rows={3} value={text} onChange={e => setText(e.target.value)} placeholder="Thank you for your feedback..." required />
+          </div>
+          <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+            <button type="button" className="btn-ghost" style={{ width: 'auto', padding: '0.65rem 1.25rem' }} onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn-primary" disabled={submitting} style={{ width: 'auto', padding: '0.65rem 1.5rem', marginTop: 0 }}>
+              {submitting ? 'Posting...' : 'Post Reply'}
+            </button>
+          </div>
+        </form>
+      </motion.div>
+    </motion.div>
+  );
+}
+
 export default function VendorBookings() {
   const [bookings, setBookings] = useState([]);
   const [status, setStatus] = useState('ALL');
   const [page, setPage] = useState(1);
   const [meta, setMeta] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const [replyReview, setReplyReview] = useState(null);
+  const [replies, setReplies] = useState({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -32,6 +81,8 @@ export default function VendorBookings() {
 
   useEffect(() => { load(); }, [load]);
   useEffect(() => { setPage(1); }, [status]);
+
+  const handleReplyDone = (reviewId, text) => setReplies(prev => ({ ...prev, [reviewId]: text }));
 
   const action = async (id, type) => {
     try {
@@ -112,6 +163,11 @@ export default function VendorBookings() {
                                   <button className="action-btn reject" onClick={() => action(b.id, 'cancel')}><XCircle size={13} /> Cancel</button>
                                 </>
                               )}
+                              {b.status === 'COMPLETED' && b.review && !b.review.vendorReply && !replies[b.review.id] && (
+                                <button className="action-btn approve" onClick={() => setReplyReview(b.review)}>
+                                  <MessageSquare size={13} /> Reply
+                                </button>
+                              )}
                             </div>
                           </td>
                         </motion.tr>
@@ -133,6 +189,10 @@ export default function VendorBookings() {
           )}
         </motion.div>
       </div>
+
+      <AnimatePresence>
+        {replyReview && <ReplyModal review={replyReview} onClose={() => setReplyReview(null)} onDone={handleReplyDone} />}
+      </AnimatePresence>
     </DashboardLayout>
   );
 }

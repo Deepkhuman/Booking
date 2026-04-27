@@ -77,8 +77,9 @@ export class BookingService {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          vendor: { select: { id: true, businessName: true, slug: true, logo: true } },
+          vendor: { select: { id: true, businessName: true, slug: true, logo: true, city: true } },
           service: { select: { id: true, name: true, price: true } },
+          review: { select: { id: true } },
         },
       }),
       this.prisma.booking.count({ where: { customerId, deletedAt: null } }),
@@ -103,6 +104,7 @@ export class BookingService {
         include: {
           customer: { select: { id: true, name: true, email: true, phone: true } },
           service: { select: { id: true, name: true, price: true } },
+          review: { select: { id: true, rating: true, comment: true, vendorReply: true } },
         },
       }),
       this.prisma.booking.count({ where }),

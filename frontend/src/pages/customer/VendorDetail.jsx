@@ -1,18 +1,29 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Phone, Globe, Clock, X, CheckCircle, Store, ArrowLeft } from 'lucide-react';
+import { MapPin, Phone, Globe, Clock, X, CheckCircle, Store, ArrowLeft, Star } from 'lucide-react';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+function StarRow({ rating }) {
+  return (
+    <span style={{ display: 'inline-flex', gap: 2 }}>
+      {[1,2,3,4,5].map(n => (
+        <Star key={n} size={13} fill={rating >= n ? '#f59e0b' : 'none'} color={rating >= n ? '#f59e0b' : '#d1d5db'} />
+      ))}
+    </span>
+  );
+}
+
 export default function VendorDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [vendor, setVendor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState(null);
   const [selectedService, setSelectedService] = useState(null);
   const [showBooking, setShowBooking] = useState(false);
   const [slots, setSlots] = useState([]);
@@ -25,6 +36,13 @@ export default function VendorDetail() {
       .then(r => setVendor(r.data.data))
       .catch(() => toast.error('Vendor not found'))
       .finally(() => setLoading(false));
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    API.get(`/reviews/vendor/${id}?limit=5`)
+      .then(r => setReviews(r.data.data))
+      .catch(() => {});
   }, [id]);
 
   const openBooking = (service) => {
@@ -136,6 +154,43 @@ export default function VendorDetail() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Reviews */}
+            {reviews && (
+              <motion.div className="dashboard-card" style={{ marginTop: '1.25rem' }} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
+                <div className="dashboard-card-header">
+                  <h2 className="dashboard-card-title">
+                    <Star size={15} style={{ display: 'inline', marginRight: 6, color: '#f59e0b' }} />
+                    Reviews ({reviews.meta?.total || 0})
+                    {reviews.stats?.averageRating > 0 && (
+                      <span style={{ marginLeft: 8, fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 400 }}>
+                        · {reviews.stats.averageRating} avg
+                      </span>
+                    )}
+                  </h2>
+                </div>
+                {reviews.data?.length === 0 ? (
+                  <div className="empty-state-sm"><p>No reviews yet</p></div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {reviews.data.map(r => (
+                      <div key={r.id} style={{ borderBottom: '1px solid var(--border)', paddingBottom: '0.85rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.3rem' }}>
+                          <span style={{ fontWeight: 600, fontSize: '0.88rem' }}>{r.customer?.name}</span>
+                          <StarRow rating={r.rating} />
+                        </div>
+                        {r.comment && <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: 0 }}>{r.comment}</p>}
+                        {r.vendorReply && (
+                          <div style={{ marginTop: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--surface)', borderRadius: 6, fontSize: '0.82rem', color: 'var(--text-muted)', borderLeft: '3px solid var(--maroon)' }}>
+                            <strong style={{ color: 'var(--maroon)' }}>Vendor:</strong> {r.vendorReply}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
             )}
           </motion.div>
 
