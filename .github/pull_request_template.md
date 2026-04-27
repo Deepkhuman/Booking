@@ -2,7 +2,6 @@
 <!-- What does this PR do? Be concise. -->
 
 ## 🔗 Related Issue
-<!-- Link the issue this PR closes. e.g. Closes #12 -->
 Closes #
 
 ## 🧩 Type of Change
@@ -13,28 +12,66 @@ Closes #
 - [ ] `test` — adding or updating tests
 - [ ] `chore` — config, dependencies, tooling
 
-## ✅ Checklist
-- [ ] Code follows project style and conventions
-- [ ] Self-reviewed my own code
+---
+
+## 🔐 Security Checklist (required for every PR)
+
+### Authentication & Authorization
+- [ ] Every mutating endpoint (POST/PUT/DELETE) has `JwtAuthGuard`
+- [ ] Role-restricted endpoints have `RolesGuard` + `@Roles()`
+- [ ] Admin endpoints are guarded with `@Roles('ADMIN')`
+- [ ] Blocked users (`isBlocked: true`) cannot access protected endpoints
+- [ ] Suspended/blocked vendors cannot perform vendor actions
+
+### Ownership & Data Isolation
+- [ ] Users can only read/modify their own data
+- [ ] Vendors can only modify their own services, bookings, and profile
+- [ ] Customers can only cancel/review their own bookings
+- [ ] Payment operations are scoped to the requesting user (`userId` check)
+- [ ] Review creation is scoped to the booking owner (`customerId` check)
+
+### Input Validation
+- [ ] All DTOs use `class-validator` decorators
+- [ ] No raw user input passed directly to Prisma queries
+- [ ] File uploads validated for type and size
+- [ ] Pagination inputs have min/max bounds
+
+### Data Exposure
+- [ ] Password field never returned in any response
+- [ ] Sensitive fields (tokens, secrets) excluded from responses
+- [ ] Soft-deleted records filtered out (`deletedAt: null`) in all queries
+- [ ] Hidden reviews (`isVisible: false`) not returned to public endpoints
+
+### Business Logic
+- [ ] Cannot pay for a cancelled booking
+- [ ] Cannot review a non-completed booking
+- [ ] Cannot double-review the same booking
+- [ ] Cannot double-reply to a review
+- [ ] Slot conflicts checked before booking creation
+- [ ] Refunds only on `SUCCESS` payments
+
+### Secrets & Config
+- [ ] No hardcoded secrets, API keys, or credentials
+- [ ] All secrets use `process.env`
+- [ ] No `console.log` of sensitive data
+
+---
+
+## ✅ Quality Checklist
+- [ ] `npm run build` passes (no TypeScript errors)
+- [ ] `npm test` passes (all tests green)
+- [ ] `npm run security` passes (no security scan issues)
+- [ ] New endpoints have corresponding test cases
+- [ ] Security boundaries tested (ownership, auth, blocked users)
 - [ ] No console.log or debug code left
-- [ ] DTOs validated with class-validator
-- [ ] New endpoints are protected with correct guards
-- [ ] Tests written and passing
-- [ ] No hardcoded secrets or credentials
-- [ ] README updated if needed
 
 ## 🧪 How to Test
-<!-- Steps to test this PR manually -->
 1. 
 2. 
 3. 
 
 ## 📸 Screenshots (if UI change)
-<!-- Add screenshots here if frontend changes -->
 
 ## ⚠️ Breaking Changes
-<!-- Does this PR break anything existing? -->
 - [ ] Yes — describe below
 - [ ] No
-
-<!-- If yes, describe what breaks and migration steps -->
