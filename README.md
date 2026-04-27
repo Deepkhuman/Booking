@@ -52,7 +52,7 @@
 - [x] Step 8 — Reviews module
 - [x] Step 9 — Notifications module (Socket.io real-time)
 - [x] Step 10 — Admin module (full control panel APIs)
-- [ ] Step 11 — Search & Filter (vendors, services, categories)
+- [x] Step 11 — Search & Filter (vendors, services, categories)
 - [ ] Step 12 — Frontend dashboards (Customer, Vendor, Admin)
 
 ---
@@ -463,6 +463,7 @@ chore:    package installs, config changes
 - Reviews module: Fully implemented ✅
 - Notifications module: Fully implemented ✅
 - Admin module: Fully implemented ✅
+- Search & Filter: Fully implemented ✅
 - Frontend: Auth pages done ✅
 - Admin dashboard: Live data ✅
 - Everything else: In progress 🔄
