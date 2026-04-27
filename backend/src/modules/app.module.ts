@@ -11,6 +11,7 @@ import { VendorModule } from './vendor.module';
 import { PaymentModule } from './payment.module';
 import { UserModule } from './user.module';
 import { ReviewModule } from './review.module';
+import { NotificationModule } from './notification.module';
 import { AppController } from '../controllers/app.controller';
 
 @Module({
@@ -27,6 +28,7 @@ import { AppController } from '../controllers/app.controller';
     PaymentModule,
     UserModule,
     ReviewModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [],

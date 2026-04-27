@@ -4,11 +4,15 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto, SetBusinessHoursDto } from '../dto/booking.dto';
-import { BookingStatus, BookingType, VendorStatus } from '@prisma/client';
+import { BookingStatus, BookingType, NotificationType, VendorStatus } from '@prisma/client';
+import { NotificationService } from './notification.service';
 
 @Injectable()
 export class BookingService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationService,
+  ) {}
 
   // ─── Create Booking ────────────────────────────────────────────────────────
 
@@ -45,7 +49,7 @@ export class BookingService {
       await this.checkDailyConflict(dto.vendorId, checkIn, checkOut);
     }
 
-    return this.prisma.booking.create({
+    const booking = await this.prisma.booking.create({
       data: {
         customerId,
         vendorId: dto.vendorId,
@@ -60,10 +64,21 @@ export class BookingService {
         notes: dto.notes,
       },
       include: {
-        vendor: { select: { id: true, businessName: true, slug: true } },
+        vendor: { select: { id: true, businessName: true, slug: true, userId: true } },
         service: { select: { id: true, name: true, price: true } },
       },
     });
+
+    // notify vendor of new booking
+    this.notifications.send({
+      userId: (booking.vendor as any).userId,
+      type: NotificationType.BOOKING_CREATED,
+      title: 'New Booking',
+      message: `You have a new booking for ${booking.service.name}`,
+      metadata: { bookingId: booking.id },
+    });
+
+    return booking;
   }
 
   // ─── Customer: My Bookings ─────────────────────────────────────────────────
@@ -119,10 +134,20 @@ export class BookingService {
     if (booking.status !== BookingStatus.PENDING) {
       throw new BadRequestException('Only pending bookings can be confirmed');
     }
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: BookingStatus.CONFIRMED },
     });
+
+    this.notifications.send({
+      userId: booking.customerId,
+      type: NotificationType.BOOKING_CONFIRMED,
+      title: 'Booking Confirmed',
+      message: 'Your booking has been confirmed by the vendor',
+      metadata: { bookingId },
+    });
+
+    return updated;
   }
 
   // ─── Cancel (customer or vendor) ──────────────────────────────────────────
@@ -146,10 +171,22 @@ export class BookingService {
       throw new BadRequestException(`Booking is already ${booking.status.toLowerCase()}`);
     }
 
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: BookingStatus.CANCELLED },
     });
+
+    // notify the other party
+    const notifyUserId = role === 'CUSTOMER' ? booking.vendor.userId : booking.customerId;
+    this.notifications.send({
+      userId: notifyUserId,
+      type: NotificationType.BOOKING_CANCELLED,
+      title: 'Booking Cancelled',
+      message: 'A booking has been cancelled',
+      metadata: { bookingId },
+    });
+
+    return updated;
   }
 
   // ─── Vendor: Complete ─────────────────────────────────────────────────────
@@ -159,10 +196,20 @@ export class BookingService {
     if (booking.status !== BookingStatus.CONFIRMED) {
       throw new BadRequestException('Only confirmed bookings can be marked complete');
     }
-    return this.prisma.booking.update({
+    const updated = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: BookingStatus.COMPLETED },
     });
+
+    this.notifications.send({
+      userId: booking.customerId,
+      type: NotificationType.BOOKING_COMPLETED,
+      title: 'Booking Completed',
+      message: 'Your booking is complete. Leave a review!',
+      metadata: { bookingId },
+    });
+
+    return updated;
   }
 
   // ─── Get Available Slots ───────────────────────────────────────────────────

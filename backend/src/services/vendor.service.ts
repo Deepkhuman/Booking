@@ -4,12 +4,16 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { RegisterVendorDto, UpdateVendorDto, AdminVendorActionDto, VendorQueryDto } from '../dto/vendor.dto';
-import { VendorStatus, AdminActionType, AdminTargetType } from '@prisma/client';
+import { VendorStatus, AdminActionType, AdminTargetType, NotificationType } from '@prisma/client';
 import slugify from 'slugify';
+import { NotificationService } from './notification.service';
 
 @Injectable()
 export class VendorService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationService,
+  ) {}
 
   // ─── Vendor Registration ───────────────────────────────────────────────────
 
@@ -185,13 +189,22 @@ export class VendorService {
     });
 
     await this.logAdminAction(adminId, vendorId, AdminActionType.APPROVE, dto.reason);
+
+    this.notifications.send({
+      userId: vendor.userId,
+      type: NotificationType.VENDOR_APPROVED,
+      title: 'Vendor Approved',
+      message: 'Your vendor profile has been approved! You can now accept bookings.',
+      metadata: { vendorId },
+    });
+
     return updated;
   }
 
   // ─── Admin: Suspend ────────────────────────────────────────────────────────
 
   async suspend(adminId: number, vendorId: number, dto: AdminVendorActionDto) {
-    await this.findVendorOrThrow(vendorId);
+    const vendor = await this.findVendorOrThrow(vendorId);
 
     const updated = await this.prisma.vendor.update({
       where: { id: vendorId },
@@ -199,6 +212,15 @@ export class VendorService {
     });
 
     await this.logAdminAction(adminId, vendorId, AdminActionType.SUSPEND, dto.reason);
+
+    this.notifications.send({
+      userId: vendor.userId,
+      type: NotificationType.VENDOR_SUSPENDED,
+      title: 'Vendor Suspended',
+      message: 'Your vendor profile has been suspended. Contact support for details.',
+      metadata: { vendorId },
+    });
+
     return updated;
   }
 

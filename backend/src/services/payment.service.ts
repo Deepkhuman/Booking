@@ -4,14 +4,18 @@ const Razorpay = require('razorpay');
 import * as crypto from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePaymentIntentDto, RefundPaymentDto, VerifyPaymentDto } from '../dto/payment.dto';
-import { BookingStatus, PaymentStatus, PaymentTransactionStatus } from '@prisma/client';
+import { BookingStatus, NotificationType, PaymentStatus, PaymentTransactionStatus } from '@prisma/client';
+import { NotificationService } from './notification.service';
 
 @Injectable()
 export class PaymentService {
   private razorpay: any;
   private readonly logger = new Logger(PaymentService.name);
 
-  constructor(private prisma: PrismaService) {
+  constructor(
+    private prisma: PrismaService,
+    private notifications: NotificationService,
+  ) {
     this.razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID ?? '',
       key_secret: process.env.RAZORPAY_KEY_SECRET ?? '',
@@ -109,6 +113,15 @@ export class PaymentService {
     ]);
 
     this.logger.log(`Payment verified for booking #${payment.bookingId}`);
+
+    this.notifications.send({
+      userId,
+      type: NotificationType.PAYMENT_SUCCESS,
+      title: 'Payment Successful',
+      message: `Payment confirmed for booking #${payment.bookingId}`,
+      metadata: { bookingId: payment.bookingId },
+    });
+
     return { message: 'Payment verified successfully', bookingId: payment.bookingId };
   }
 
@@ -140,6 +153,14 @@ export class PaymentService {
         data: { paymentStatus: PaymentStatus.REFUNDED, status: BookingStatus.CANCELLED },
       }),
     ]);
+
+    this.notifications.send({
+      userId: payment.userId,
+      type: NotificationType.PAYMENT_REFUNDED,
+      title: 'Payment Refunded',
+      message: `Your refund for booking #${bookingId} has been processed`,
+      metadata: { bookingId, refundId: refund.id },
+    });
 
     return { message: 'Refund processed successfully', refundId: refund.id };
   }
