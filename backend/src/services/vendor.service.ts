@@ -112,13 +112,23 @@ export class VendorService {
           bookingType: true, isFeatured: true, isVerified: true,
           category: { select: { id: true, name: true, slug: true, icon: true } },
           _count: { select: { services: true, reviews: true } },
+          reviews: { select: { rating: true }, where: { isVisible: true } },
         },
       }),
       this.prisma.vendor.count({ where }),
     ]);
 
+    const vendorsWithRating = vendors.map(v => {
+      const ratings = (v.reviews as { rating: number }[]);
+      const avgRating = ratings.length
+        ? Number((ratings.reduce((s, r) => s + r.rating, 0) / ratings.length).toFixed(1))
+        : 0;
+      const { reviews: _, ...rest } = v;
+      return { ...rest, avgRating };
+    });
+
     return {
-      data: vendors,
+      data: vendorsWithRating,
       meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   }
