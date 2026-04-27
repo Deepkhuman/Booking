@@ -4,6 +4,8 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ConflictException, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { VendorStatus, BookingType } from '@prisma/client';
 
+import { NotificationService } from '../services/notification.service';
+
 const mockPrisma = {
   vendor: {
     findUnique: jest.fn(),
@@ -20,6 +22,8 @@ const mockPrisma = {
     create: jest.fn(),
   },
 };
+
+const mockNotifications = { send: jest.fn() };
 
 const mockVendor = {
   id: 1,
@@ -41,6 +45,7 @@ describe('VendorService', () => {
       providers: [
         VendorService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationService, useValue: mockNotifications },
       ],
     }).compile();
 
@@ -126,7 +131,7 @@ describe('VendorService', () => {
   // ─────────────────────────────────────────
   describe('findAll', () => {
     it('should return paginated approved vendors', async () => {
-      mockPrisma.vendor.findMany.mockResolvedValue([mockVendor]);
+      mockPrisma.vendor.findMany.mockResolvedValue([{ ...mockVendor, reviews: [] }]);
       mockPrisma.vendor.count.mockResolvedValue(1);
 
       const result = await service.findAll({ page: 1, limit: 10 });

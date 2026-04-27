@@ -7,6 +7,8 @@ import {
 } from '@nestjs/common';
 import { BookingStatus, BookingType, VendorStatus } from '@prisma/client';
 
+import { NotificationService } from '../services/notification.service';
+
 const mockPrisma = {
   vendor: { findFirst: jest.fn(), findUnique: jest.fn() },
   vendorService: { findFirst: jest.fn() },
@@ -23,6 +25,8 @@ const mockPrisma = {
     upsert: jest.fn(),
   },
 };
+
+const mockNotifications = { send: jest.fn() };
 
 const mockVendor = { id: 1, userId: 10, status: VendorStatus.APPROVED, isActive: true, bookingType: BookingType.SLOT_BASED };
 const mockService = { id: 5, vendorId: 1, name: 'Haircut', price: 200, isActive: true, isEnabled: true, deletedAt: null };
@@ -41,6 +45,7 @@ describe('BookingService', () => {
       providers: [
         BookingService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: NotificationService, useValue: mockNotifications },
       ],
     }).compile();
 

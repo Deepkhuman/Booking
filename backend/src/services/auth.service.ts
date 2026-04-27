@@ -78,6 +78,8 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
     if (!user) throw new UnauthorizedException('Invalid email or password');
 
+    if (user.isBlocked) throw new UnauthorizedException('Your account has been blocked. Contact support.');
+
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       const minutesLeft = Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60000);
       throw new UnauthorizedException(`Account locked. Try again in ${minutesLeft} minute(s)`);

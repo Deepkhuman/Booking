@@ -116,6 +116,7 @@ describe('AuthService', () => {
       name: 'John',
       role: 'CUSTOMER',
       isEmailVerified: true,
+      isBlocked: false,
       lockedUntil: null,
       failedLoginAttempts: 0,
     };
@@ -153,6 +154,11 @@ describe('AuthService', () => {
         ...mockUser,
         lockedUntil: new Date(Date.now() + 10 * 60 * 1000),
       });
+      await expect(service.login({ email: 'john@test.com', password: 'Password1!' })).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw if account is blocked', async () => {
+      mockPrisma.user.findUnique.mockResolvedValue({ ...mockUser, isBlocked: true });
       await expect(service.login({ email: 'john@test.com', password: 'Password1!' })).rejects.toThrow(UnauthorizedException);
     });
 
