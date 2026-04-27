@@ -185,7 +185,8 @@ export default function Explore() {
                       {v.coverImage
                         ? <img src={v.coverImage} alt={v.businessName} />
                         : <div className="vendor-card-cover-placeholder"><Store size={32} /></div>}
-                      {v.isFeatured && <span className="vendor-featured-badge">⭐ Featured</span>}
+                      {v.isSponsored && <span className="vendor-sponsored-badge">Sponsored</span>}
+                      {!v.isSponsored && v.isFeatured && <span className="vendor-featured-badge">⭐ Featured</span>}
                     </div>
                     <div className="vendor-card-body">
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>

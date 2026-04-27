@@ -89,6 +89,12 @@ export class VendorService {
       deletedAt: null,
     };
 
+    // auto-expire sponsorships
+    await this.prisma.vendor.updateMany({
+      where: { isSponsored: true, sponsoredUntil: { lt: new Date() } },
+      data: { isSponsored: false, sponsoredUntil: null, sponsorTier: null },
+    });
+
     if (category) where.category = { slug: category };
     if (city) where.city = { contains: city, mode: 'insensitive' };
     if (bookingType) where.bookingType = bookingType;
@@ -105,11 +111,12 @@ export class VendorService {
         where,
         skip,
         take: limit,
-        orderBy: [{ isFeatured: 'desc' }, { createdAt: 'desc' }],
+        orderBy: [{ isSponsored: 'desc' }, { isFeatured: 'desc' }, { createdAt: 'desc' }],
         select: {
           id: true, businessName: true, slug: true, description: true,
           logo: true, coverImage: true, city: true, state: true, country: true,
           bookingType: true, isFeatured: true, isVerified: true,
+          isSponsored: true, sponsorTier: true,
           category: { select: { id: true, name: true, slug: true, icon: true } },
           _count: { select: { services: true, reviews: true } },
           reviews: { select: { rating: true }, where: { isVisible: true } },
@@ -259,6 +266,36 @@ export class VendorService {
     });
 
     await this.logAdminAction(adminId, vendorId, AdminActionType.UNBLOCK, dto.reason);
+    return updated;
+  }
+
+  // ─── Admin: Sponsor ───────────────────────────────────────────────────────
+
+  async sponsor(adminId: number, vendorId: number, tier: string, durationDays: number) {
+    await this.findVendorOrThrow(vendorId);
+    const sponsoredUntil = new Date();
+    sponsoredUntil.setDate(sponsoredUntil.getDate() + durationDays);
+
+    const updated = await this.prisma.vendor.update({
+      where: { id: vendorId },
+      data: { isSponsored: true, sponsoredUntil, sponsorTier: tier as any },
+    });
+
+    await this.logAdminAction(adminId, vendorId, AdminActionType.SPONSOR);
+    return updated;
+  }
+
+  // ─── Admin: Unsponsor ──────────────────────────────────────────────────────
+
+  async unsponsor(adminId: number, vendorId: number) {
+    await this.findVendorOrThrow(vendorId);
+
+    const updated = await this.prisma.vendor.update({
+      where: { id: vendorId },
+      data: { isSponsored: false, sponsoredUntil: null, sponsorTier: null },
+    });
+
+    await this.logAdminAction(adminId, vendorId, AdminActionType.UNSPONSOR);
     return updated;
   }
 

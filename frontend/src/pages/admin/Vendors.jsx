@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Store, CheckCircle, XCircle, ShieldOff, Trash2, Search } from 'lucide-react';
+import { Store, CheckCircle, XCircle, ShieldOff, Trash2, Search, Megaphone, MegaphoneOff, X } from 'lucide-react';
 import DashboardLayout from '../../components/dashboard/DashboardLayout';
 import API from '../../api/axios';
 import toast from 'react-hot-toast';
@@ -16,6 +16,9 @@ export default function AdminVendors() {
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [sponsorModal, setSponsorModal] = useState(null); // vendor object
+  const [sponsorForm, setSponsorForm] = useState({ tier: 'BASIC', durationDays: 30 });
+  const [sponsoring, setSponsoring] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -59,6 +62,36 @@ export default function AdminVendors() {
       toast.success('Vendor deleted');
     } catch (e) {
       toast.error(e.response?.data?.message || 'Failed to delete');
+    }
+  };
+
+  const handleSponsor = async () => {
+    setSponsoring(true);
+    try {
+      await API.put(`/admin/vendors/${sponsorModal.id}/sponsor`, sponsorForm);
+      setVendors(prev => prev.map(v => v.id === sponsorModal.id
+        ? { ...v, isSponsored: true, sponsorTier: sponsorForm.tier }
+        : v
+      ));
+      toast.success('Vendor sponsored');
+      setSponsorModal(null);
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Failed');
+    } finally {
+      setSponsoring(false);
+    }
+  };
+
+  const handleUnsponsor = async (id) => {
+    try {
+      await API.put(`/admin/vendors/${id}/unsponsor`);
+      setVendors(prev => prev.map(v => v.id === id
+        ? { ...v, isSponsored: false, sponsorTier: null }
+        : v
+      ));
+      toast.success('Sponsorship removed');
+    } catch (e) {
+      toast.error(e.response?.data?.message || 'Failed');
     }
   };
 
@@ -142,6 +175,17 @@ export default function AdminVendors() {
                                   <CheckCircle size={13} /> Unblock
                                 </button>
                               )}
+                              {v.status === 'APPROVED' && !v.isSponsored && (
+                                <button className="action-btn approve" onClick={() => { setSponsorModal(v); setSponsorForm({ tier: 'BASIC', durationDays: 30 }); }}
+                                  style={{ background: 'rgba(234,179,8,0.1)', color: '#ca8a04' }}>
+                                  <Megaphone size={13} /> Sponsor
+                                </button>
+                              )}
+                              {v.isSponsored && (
+                                <button className="action-btn reject" onClick={() => handleUnsponsor(v.id)}>
+                                  <MegaphoneOff size={13} /> Unsponsor
+                                </button>
+                              )}
                               <button className="action-btn reject" onClick={() => handleDelete(v.id)}>
                                 <Trash2 size={13} />
                               </button>
@@ -165,6 +209,43 @@ export default function AdminVendors() {
           )}
         </motion.div>
       </div>
+
+      {/* Sponsor Modal */}
+      <AnimatePresence>
+        {sponsorModal && (
+          <motion.div className="modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSponsorModal(null)}>
+            <motion.div className="modal" style={{ maxWidth: 420 }} initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <div>
+                  <h2 className="dashboard-card-title">Sponsor — {sponsorModal.businessName}</h2>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>Vendor will appear at top of search results</p>
+                </div>
+                <button className="modal-close" onClick={() => setSponsorModal(null)}><X size={18} /></button>
+              </div>
+              <div className="input-group">
+                <label>Sponsor Tier</label>
+                <select className="input-field" value={sponsorForm.tier} onChange={e => setSponsorForm(f => ({ ...f, tier: e.target.value }))}>
+                  <option value="BASIC">Basic — Top of category search</option>
+                  <option value="FEATURED">Featured — Top of all search + badge</option>
+                </select>
+              </div>
+              <div className="input-group">
+                <label>Duration (days)</label>
+                <select className="input-field" value={sponsorForm.durationDays} onChange={e => setSponsorForm(f => ({ ...f, durationDays: Number(e.target.value) }))}>
+                  {[7, 14, 30, 60, 90].map(d => <option key={d} value={d}>{d} days</option>)}
+                </select>
+              </div>
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button className="btn-ghost" style={{ width: 'auto', padding: '0.65rem 1.25rem' }} onClick={() => setSponsorModal(null)}>Cancel</button>
+                <button className="btn-primary" disabled={sponsoring} onClick={handleSponsor}
+                  style={{ width: 'auto', padding: '0.65rem 1.5rem', marginTop: 0, background: 'linear-gradient(135deg, #ca8a04, #d97706)' }}>
+                  {sponsoring ? 'Activating...' : 'Activate Sponsorship'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </DashboardLayout>
   );
 }

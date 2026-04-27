@@ -85,6 +85,13 @@ enum AdminActionType {
   SHOW_REVIEW
   BLOCK_USER
   UNBLOCK_USER
+  SPONSOR
+  UNSPONSOR
+}
+
+enum SponsorTier {
+  BASIC
+  FEATURED
 }
 
 enum AdminTargetType {
@@ -181,10 +188,13 @@ model Vendor {
   lng          Float?
   bookingType  BookingType  @default(SLOT_BASED)
   status       VendorStatus @default(PENDING)
-  isActive     Boolean      @default(true)
-  isFeatured   Boolean      @default(false)
-  isVerified   Boolean      @default(false)
-  deletedAt    DateTime?
+  isActive       Boolean      @default(true)
+  isFeatured     Boolean      @default(false)
+  isVerified     Boolean      @default(false)
+  isSponsored    Boolean      @default(false)
+  sponsoredUntil DateTime?
+  sponsorTier    SponsorTier?
+  deletedAt      DateTime?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 

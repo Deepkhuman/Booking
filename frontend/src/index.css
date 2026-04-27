@@ -1319,6 +1319,19 @@ textarea.input-field { resize: vertical; min-height: 80px; }
   border-radius: 100px;
 }
 
+.vendor-sponsored-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(202,138,4,0.92);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 100px;
+  letter-spacing: 0.03em;
+}
+
 .vendor-card-body { padding: 1rem; }
 
 .vendor-logo {

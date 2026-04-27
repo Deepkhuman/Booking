@@ -111,4 +111,18 @@ export class AdminVendorController {
   remove(@CurrentUser() user: JwtPayload, @Param('id', ParseIntPipe) id: number) {
     return this.vendorService.remove(user.id, id);
   }
+
+  @Put(':id/sponsor')
+  sponsor(
+    @CurrentUser() user: JwtPayload,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: { tier: string; durationDays: number },
+  ) {
+    return this.vendorService.sponsor(user.id, id, dto.tier, dto.durationDays);
+  }
+
+  @Put(':id/unsponsor')
+  unsponsor(@CurrentUser() user: JwtPayload, @Param('id', ParseIntPipe) id: number) {
+    return this.vendorService.unsponsor(user.id, id);
+  }
 }
