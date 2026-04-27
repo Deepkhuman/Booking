@@ -50,7 +50,7 @@
 - [x] Step 6 — Bookings module (full status flow)
 - [x] Step 7 — Payments module (Razorpay)
 - [x] Step 8 — Reviews module
-- [ ] Step 9 — Notifications module (Socket.io real-time)
+- [x] Step 9 — Notifications module (Socket.io real-time)
 - [ ] Step 10 — Admin module (full control panel APIs)
 - [ ] Step 11 — Search & Filter (vendors, services, categories)
 - [ ] Step 12 — Frontend dashboards (Customer, Vendor, Admin)
@@ -461,6 +461,7 @@ chore:    package installs, config changes
 - Bookings module: Fully implemented ✅
 - Payments module: Fully implemented ✅
 - Reviews module: Fully implemented ✅
+- Notifications module: Fully implemented ✅
 - Frontend: Auth pages done ✅
 - Admin dashboard: Done (static data) ✅
 - Everything else: In progress 🔄
