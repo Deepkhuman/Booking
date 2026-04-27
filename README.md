@@ -1,14 +1,65 @@
 # Plugin — Vendor Marketplace Platform
 
-> A free marketplace connecting service vendors (hotels, barbers, gyms, medical, etc.) to users.
+> A free marketplace connecting service vendors (barbers, gyms, doctors, hotels, etc.) to customers. Vendors get a digital presence and booking system at zero cost.
+
+---
+
+## 🚀 Current Status
+
+### Backend — NestJS + TypeScript
+| Module | Status |
+|--------|--------|
+| Auth (register, login, verify, forgot/reset, refresh, logout) | ✅ Complete |
+| Categories (CRUD) | ✅ Complete |
+| Vendor module (register, profile, admin approval flow) | ✅ Complete |
+| Services module (CRUD + image upload via Cloudinary) | ✅ Complete |
+| Bookings module (all 4 types + availability + business hours) | ✅ Complete |
+| Payments module (Razorpay create order + verify + refund) | ✅ Complete |
+| Reviews module (create, reply, admin hide/show/delete) | ✅ Complete |
+| Notifications module (Socket.io real-time + REST) | ✅ Complete |
+| Admin module (dashboard stats, users, audit log) | ✅ Complete |
+| Search & Filter (vendors by name, city, category, type) | ✅ Complete |
+| Admin bookings endpoint (view all bookings) | ❌ Missing |
+| Admin payments endpoint (view all payments) | ❌ Missing |
+
+### Frontend — React + Vite
+| Page | Status |
+|------|--------|
+| Auth pages (login, register, forgot/reset, verify email) | ✅ Complete |
+| Admin dashboard (stats, charts, pending approvals) | ✅ Complete |
+| Admin users (list, block/unblock) | ✅ Complete |
+| Admin vendors (list, approve/suspend/block/unblock/delete) | ✅ Complete |
+| Admin services (enable/disable per vendor) | ✅ Complete |
+| Admin reviews (hide/show/delete) | ✅ Complete |
+| Admin audit log | ✅ Complete |
+| Admin categories (CRUD) | ❌ Missing |
+| Admin bookings (view all) | ❌ Missing |
+| Admin payments (view all) | ❌ Missing |
+| Vendor dashboard (stats + recent bookings) | ✅ Complete |
+| Vendor profile (register + edit business) | ✅ Complete |
+| Vendor services (CRUD + image upload) | ✅ Complete |
+| Vendor bookings (list, confirm, complete, cancel, reply to review) | ✅ Complete |
+| Vendor business hours | ✅ Complete |
+| Vendor logo & cover image upload | ❌ Missing |
+| Vendor reviews page (all reviews received) | ❌ Missing |
+| Vendor notifications page | ❌ Missing |
+| Vendor earnings summary | ❌ Missing |
+| Customer dashboard (stats + recent bookings + categories) | ✅ Complete |
+| Customer explore (search + filter vendors) | ✅ Complete |
+| Customer vendor detail + booking modal (all 4 types) | ✅ Complete |
+| Customer bookings (list, cancel, leave review) | ✅ Complete |
+| Customer payments (pay now + history + refund) | ✅ Complete |
+| Customer profile (edit info + avatar + change password) | ✅ Complete |
+| Customer notifications page | ❌ Missing |
+| Customer my reviews page | ❌ Missing |
+| Public vendor profile page (`/v/:slug`) | ❌ Missing — critical for launch |
 
 ---
 
 ## ⚡ Core Principles
 
 ### 🆓 Free & Open
-- Platform is completely free for users
-- Vendors can list and manage services at no cost
+- Platform is completely free for users and vendors
 - No hidden charges, no subscription fees
 - Monetization only via optional premium features (future)
 
@@ -19,7 +70,7 @@
 - Redis caching — reduces DB load at scale
 - Cloudinary for media — no server storage bottleneck
 - Socket.io with Redis adapter — scales across multiple servers
-- Pagination on all list endpoints — no data overload
+- Pagination on all list endpoints
 - Modular codebase — each feature is independent
 
 ### 🔐 Security
@@ -30,30 +81,12 @@
 - Rate limiting on all sensitive routes
 - No user enumeration on forgot password
 - Admin audit log on all sensitive actions
-- Stripe webhook signature verification
+- Razorpay webhook signature verification
 - File upload validation (type + size)
 - CORS restricted to known origins
 - All secrets in environment variables, never hardcoded
-- HTTPS enforced in production
 - Input validation on every endpoint via class-validator
 - Role-based access control (CUSTOMER | VENDOR | ADMIN)
-
----
-
-## 🏗️ Build Order
-
-- [x] Step 1 — Auth (register, login, email verify, forgot/reset password, refresh token, logout)
-- [x] Step 2 — Schema redesign (full Prisma models)
-- [x] Step 3 — Categories module
-- [x] Step 4 — Vendor module (registration, profile, admin approval flow)
-- [x] Step 5 — Services module (with image upload via Cloudinary)
-- [x] Step 6 — Bookings module (full status flow)
-- [x] Step 7 — Payments module (Razorpay)
-- [x] Step 8 — Reviews module
-- [x] Step 9 — Notifications module (Socket.io real-time)
-- [x] Step 10 — Admin module (full control panel APIs)
-- [x] Step 11 — Search & Filter (vendors, services, categories)
-- [ ] Step 12 — Frontend dashboards (Customer, Vendor, Admin)
 
 ---
 
@@ -61,107 +94,218 @@
 
 | Role | Description |
 |------|-------------|
-| `CUSTOMER` | Search, book, review, manage bookings |
-| `VENDOR` | Manage shop, services, bookings, uploads |
-| `ADMIN` | Approve/block vendors, manage platform |
+| `CUSTOMER` | Search vendors, book services, pay, review, manage bookings |
+| `VENDOR` | Register business, manage services, handle bookings, upload media |
+| `ADMIN` | Approve/block vendors, manage platform, full control panel |
 
 ---
 
-## 🗄️ Database Schema Plan
+## 📅 Booking Type System
+
+| Type | Example Vendors | How it works |
+|------|----------------|--------------|
+| `SLOT_BASED` | Barber, Doctor, Gym class | Fixed time slots auto-generated from business hours |
+| `HOURLY` | Studio, Meeting room | Customer picks start + end time, price = rate × hours |
+| `DAILY` | Hotel, Resort | Customer picks check-in/check-out, price = rate × nights |
+| `NO_BOOKING` | Products, Supplements | No booking — browse and contact vendor directly |
+
+---
+
+## 🔌 API Endpoints
+
+### Auth `/api/auth` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | `/register` | Public |
+| GET | `/verify-email?token=` | Public |
+| POST | `/login` | Public |
+| POST | `/refresh` | Public |
+| POST | `/logout` | Auth |
+| POST | `/forgot-password` | Public |
+| POST | `/reset-password` | Public |
+
+### Categories `/api/categories` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| GET | `/` | Public |
+| GET | `/:slug` | Public |
+| POST | `/` | Admin |
+| PUT | `/:id` | Admin |
+| DELETE | `/:id` | Admin |
+
+### Vendors `/api/vendors` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | `/register` | Vendor |
+| GET | `/` | Public |
+| GET | `/me` | Vendor |
+| PUT | `/me` | Vendor |
+| GET | `/category/:slug` | Public |
+| GET | `/:id` | Public |
+
+### Admin Vendor Control `/api/admin/vendors` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| GET | `/` | Admin |
+| PUT | `/:id/approve` | Admin |
+| PUT | `/:id/suspend` | Admin |
+| PUT | `/:id/block` | Admin |
+| PUT | `/:id/unblock` | Admin |
+| DELETE | `/:id` | Admin |
+
+### Services `/api/services` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | `/` | Vendor |
+| GET | `/vendor/:vendorId` | Public |
+| PUT | `/:id` | Vendor |
+| DELETE | `/:id` | Vendor |
+| POST | `/:id/images` | Vendor |
+| DELETE | `/:id/images/:imageId` | Vendor |
+
+### Admin Service Control `/api/admin/services` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| PUT | `/:id/enable` | Admin |
+| PUT | `/:id/disable` | Admin |
+
+### Bookings `/api/bookings` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | `/` | Customer |
+| GET | `/mine` | Customer |
+| GET | `/vendor` | Vendor |
+| PUT | `/:id/confirm` | Vendor |
+| PUT | `/:id/cancel` | Customer / Vendor |
+| PUT | `/:id/complete` | Vendor |
+| GET | `/availability/:vendorId?date=` | Public |
+| POST | `/business-hours` | Vendor |
+| GET | `/business-hours/:vendorId` | Public |
+
+### Payments `/api/payments` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | `/create-order` | Customer |
+| POST | `/verify` | Customer |
+| GET | `/history` | Customer |
+| POST | `/refund/:bookingId` | Customer / Admin |
+
+### Reviews `/api/reviews` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| POST | `/` | Customer |
+| GET | `/admin` | Admin |
+| GET | `/vendor/:vendorId` | Public |
+| GET | `/mine` | Customer |
+| GET | `/can-review/:bookingId` | Customer |
+| PUT | `/:id/reply` | Vendor |
+| PUT | `/:id/hide` | Admin |
+| PUT | `/:id/show` | Admin |
+| DELETE | `/:id` | Admin |
+
+### Notifications `/api/notifications` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| GET | `/` | Auth |
+| PUT | `/:id/read` | Auth |
+| PUT | `/read-all` | Auth |
+| DELETE | `/:id` | Auth |
+
+### Admin `/api/admin` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| GET | `/dashboard` | Admin |
+| GET | `/users` | Admin |
+| PUT | `/users/:id/block` | Admin |
+| PUT | `/users/:id/unblock` | Admin |
+| GET | `/actions` | Admin |
+
+### Users `/api/users` ✅
+| Method | Endpoint | Access |
+|--------|----------|--------|
+| GET | `/me` | Auth |
+| PUT | `/me` | Auth |
+| POST | `/me/avatar` | Auth |
+| PUT | `/me/password` | Auth |
+
+---
+
+## 🗄️ Database Schema
 
 ### User
 ```
 id, email, password, name, phone, avatar
+googleId, facebookId
 role: CUSTOMER | VENDOR | ADMIN
 isEmailVerified, emailVerifyToken
 failedLoginAttempts, lockedUntil
 passwordResetToken, passwordResetExpiry
-refreshTokens[]
+isBlocked, deletedAt
 createdAt, updatedAt
 ```
 
 ### Category
 ```
 id, name, slug, icon, description
-isActive
+isActive, deletedAt
 createdAt, updatedAt
 ```
 
 ### Vendor
 ```
-id, userId (owner)
-categoryId
+id, userId, categoryId
 businessName, slug, description
 logo, coverImage
 phone, email, website
 address, city, state, country, pincode
-lat, lng (for geo search)
+lat, lng
 bookingType: SLOT_BASED | HOURLY | DAILY | NO_BOOKING
 status: PENDING | APPROVED | SUSPENDED | BLOCKED
-isActive (vendor toggle)
-documents[] (for verification)
-createdAt, updatedAt
+isActive, isFeatured, isVerified
+deletedAt, createdAt, updatedAt
 ```
 
 ### VendorService
 ```
 id, vendorId
-name, description
-price, duration (mins)
-bookingType (inherits from vendor or override per service)
+name, description, price, duration
+isEnabled (admin toggle), isActive (vendor toggle)
+deletedAt, createdAt, updatedAt
 images[]
-isEnabled (admin can toggle per service)
-isActive (vendor can toggle)
-createdAt, updatedAt
 ```
 
 ### BusinessHours
 ```
 id, vendorId
-dayOfWeek (0-6)
-openTime, closeTime
-slotDuration (mins) — for SLOT_BASED vendors
-isClosed
+dayOfWeek (0-6), openTime, closeTime
+slotDuration (mins), isClosed
 ```
 
 ### Booking
 ```
 id, customerId, vendorId, serviceId
 bookingType: SLOT_BASED | HOURLY | DAILY | NO_BOOKING
-
-— SLOT_BASED & HOURLY fields —
-date, startTime, endTime
-
-— DAILY fields —
-checkIn, checkOut (DateTime)
-
-— NO_BOOKING fields —
-quantity
-
-status: PENDING | CONFIRMED | CANCELLED | COMPLETED | NO_SHOW
-paymentStatus: UNPAID | PAID | REFUNDED
-notes (customer notes)
-createdAt, updatedAt
+date, startTime, endTime (SLOT_BASED / HOURLY)
+checkIn, checkOut (DAILY)
+quantity (NO_BOOKING)
+notes, status, paymentStatus
+deletedAt, createdAt, updatedAt
 ```
 
 ### Payment
 ```
 id, bookingId, userId
 amount, currency
-provider: STRIPE
+provider: STRIPE (schema) / Razorpay (implementation)
 status: PENDING | SUCCESS | FAILED | REFUNDED
-stripePaymentIntentId
-stripeChargeId
-refundId
+razorpayOrderId, razorpayPaymentId, razorpaySignature
 createdAt
 ```
 
 ### Review
 ```
 id, customerId, vendorId, bookingId
-rating (1-5)
-comment
-vendorReply
+rating (1-5), comment, vendorReply
 isVisible (admin can hide)
 createdAt, updatedAt
 ```
@@ -169,10 +313,9 @@ createdAt, updatedAt
 ### Notification
 ```
 id, userId
-type: BOOKING_CONFIRMED | BOOKING_CANCELLED | PAYMENT_SUCCESS | VENDOR_APPROVED | etc
-title, message
-isRead
-metadata (JSON — extra data like bookingId etc)
+type: BOOKING_CREATED | BOOKING_CONFIRMED | ... (14 types)
+title, message, isRead
+metadata (JSON)
 createdAt
 ```
 
@@ -180,125 +323,41 @@ createdAt
 ```
 id, adminId
 targetId, targetType: VENDOR | SERVICE | REVIEW | USER
-action: APPROVE | SUSPEND | BLOCK | DELETE | ENABLE_SERVICE | DISABLE_SERVICE | HIDE_REVIEW
-reason
-createdAt
+action: APPROVE | SUSPEND | BLOCK | UNBLOCK | DELETE |
+        ENABLE_SERVICE | DISABLE_SERVICE |
+        HIDE_REVIEW | SHOW_REVIEW |
+        BLOCK_USER | UNBLOCK_USER
+reason, createdAt
+```
+
+### MenuItem (dynamic sidebar)
+```
+id, label, icon, path, order
+roles: Role[]
+isActive, createdAt, updatedAt
 ```
 
 ---
 
-## 📅 Booking Type System
-
-| Type | Vendors | How it works |
-|------|---------|-------------|
-| `SLOT_BASED` | Barber, Doctor, Gym class | Fixed time slots auto-generated from business hours |
-| `HOURLY` | Studio, Meeting room | Customer picks start + end hour, price = rate × hours |
-| `DAILY` | Hotel, Resort | Customer picks check-in/check-out, price = rate × nights |
-| `NO_BOOKING` | Supplements, Products | No booking, just browse/contact vendor |
-
-### Frontend Rendering Logic
+## 🔔 Notification Types
 ```
-if bookingType === SLOT_BASED  → render SlotPicker (time grid)
-if bookingType === HOURLY      → render HourlyPicker (start/end time)
-if bookingType === DAILY       → render DateRangePicker (calendar)
-if bookingType === NO_BOOKING  → render ContactCard (no booking UI)
-```
-
-### Vendor Dashboard Per Type
-```
-SLOT_BASED  → Today's appointments + slot management
-HOURLY      → Hourly calendar view
-DAILY       → Monthly calendar with check-ins/check-outs
-NO_BOOKING  → Product/service listings only
+BOOKING_CREATED       BOOKING_CONFIRMED     BOOKING_CANCELLED
+BOOKING_COMPLETED     PAYMENT_SUCCESS       PAYMENT_FAILED
+PAYMENT_REFUNDED      VENDOR_APPROVED       VENDOR_SUSPENDED
+VENDOR_BLOCKED        REVIEW_RECEIVED       REVIEW_REPLIED
+SERVICE_DISABLED      SERVICE_ENABLED
 ```
 
 ---
 
-## 🔌 API Endpoints Plan
-
-### Auth `/api/auth` ✅
-- POST `/register`
-- GET `/verify-email`
-- POST `/login`
-- POST `/refresh`
-- POST `/logout`
-- POST `/forgot-password`
-- POST `/reset-password`
-
-### Categories `/api/categories`
-- GET `/` — list all active categories (public)
-- GET `/:slug` — get category by slug (public)
-- POST `/` — create category (admin)
-- PUT `/:id` — update category (admin)
-- DELETE `/:id` — delete category (admin)
-
-### Vendors `/api/vendors` ✅
-- POST `/register` — vendor registration (vendor)
-- GET `/` — list approved vendors (public, paginated, filterable)
-- GET `/:id` — get vendor profile (public)
-- GET `/me` — get own vendor profile (vendor)
-- PUT `/me` — update own profile (vendor)
-- GET `/category/:slug` — vendors by category (public)
-
-### Admin Vendor Control `/api/admin/vendors` ✅
-- GET `/` — list all vendors with status filter
-- PUT `/:id/approve` — approve vendor
-- PUT `/:id/suspend` — suspend vendor (temporary)
-- PUT `/:id/block` — block vendor (permanent)
-- PUT `/:id/unblock` — unblock vendor
-- DELETE `/:id` — delete vendor
-
-### Services `/api/services` ✅
-- POST `/` — create service (vendor)
-- GET `/vendor/:vendorId` — list services by vendor (public)
-- PUT `/:id` — update service (vendor)
-- DELETE `/:id` — delete service (vendor)
-- POST `/:id/images` — upload service images (vendor)
-- DELETE `/:id/images/:imageId` — delete image (vendor)
-
-### Admin Service Control `/api/admin/services` ✅
-- PUT `/:id/enable` — enable service
-- PUT `/:id/disable` — disable service for specific vendor
-
-### Bookings `/api/bookings` ✅
-- POST `/` — create booking (customer)
-- GET `/mine` — customer's bookings
-- GET `/vendor` — vendor's bookings
-- PUT `/:id/confirm` — confirm booking (vendor)
-- PUT `/:id/cancel` — cancel booking (customer/vendor)
-- PUT `/:id/complete` — mark complete (vendor)
-- GET `/availability/:vendorId` — get available slots
-- POST `/business-hours` — set business hours (vendor)
-- GET `/business-hours/:vendorId` — get business hours (public)
-
-### Payments `/api/payments` ✅
-- POST `/create-order` — create Razorpay order (customer)
-- POST `/verify` — verify payment signature (customer)
-- GET `/history` — payment history (customer)
-- POST `/refund/:bookingId` — refund payment (customer/admin)
-
-### Reviews `/api/reviews`
-- POST `/` — create review (customer, after completed booking)
-- GET `/vendor/:vendorId` — get vendor reviews (public)
-- PUT `/:id/reply` — vendor reply to review
-- DELETE `/:id` — delete review (admin)
-- PUT `/:id/hide` — hide review (admin)
-
-### Notifications `/api/notifications`
-- GET `/` — get user notifications
-- PUT `/:id/read` — mark as read
-- PUT `/read-all` — mark all as read
-- DELETE `/:id` — delete notification
-
-### Admin `/api/admin`
-- GET `/dashboard` — platform stats
-- GET `/users` — list all users
-- PUT `/users/:id/block` — block user
-- GET `/actions` — audit log
-
-### Uploads `/api/uploads`
-- POST `/image` — upload single image (Cloudinary)
-- DELETE `/image/:publicId` — delete image
+## 💳 Payment Flow (Razorpay)
+```
+1. Customer selects service → POST /bookings → booking created (PENDING, UNPAID)
+2. Customer goes to payments → POST /payments/create-order → gets Razorpay order
+3. Razorpay checkout opens in browser
+4. On success → POST /payments/verify → signature verified → booking CONFIRMED, payment SUCCESS
+5. On cancellation → POST /payments/refund/:bookingId → booking CANCELLED, payment REFUNDED
+```
 
 ---
 
@@ -312,87 +371,130 @@ NO_BOOKING  → Product/service listings only
 | PostgreSQL | Database |
 | JWT + Passport | Auth |
 | Socket.io | Real-time notifications |
-| Stripe | Payments |
+| Razorpay | Payments |
 | Multer + Cloudinary | File uploads |
-| Redis | Caching + Socket sessions |
+| Redis | Caching + Socket adapter |
 | @nestjs/throttler | Rate limiting |
 | class-validator | DTO validation |
+| Nodemailer | Email (verify, reset password) |
 
 ### Frontend
 | Package | Purpose |
 |---------|---------|
 | React + Vite | Framework |
-| React Router | Routing |
+| React Router v6 | Routing |
 | Axios | HTTP client |
 | Framer Motion | Animations |
-| Three.js | 3D effects |
-| React Hot Toast | Notifications |
-| Socket.io-client | Real-time |
+| Three.js | 3D background on auth pages |
+| React Hot Toast | Toast notifications |
+| Socket.io-client | Real-time notifications |
+| Lucide React | Icons |
+| Recharts | Charts (admin dashboard) |
+| React Image Crop | Avatar cropping |
 
 ---
 
-## 🔔 Notification Types
+## 📁 Folder Structure
+
+### Backend
 ```
-BOOKING_CREATED
-BOOKING_CONFIRMED
-BOOKING_CANCELLED
-BOOKING_COMPLETED
-PAYMENT_SUCCESS
-PAYMENT_FAILED
-PAYMENT_REFUNDED
-VENDOR_APPROVED
-VENDOR_SUSPENDED
-VENDOR_BLOCKED
-REVIEW_RECEIVED
-REVIEW_REPLIED
-SERVICE_DISABLED
-SERVICE_ENABLED
-```
-
----
-
-## 💳 Payment Flow
-```
-1. Customer selects service → creates booking (PENDING)
-2. Frontend calls POST /payments/create-intent → gets clientSecret
-3. Customer pays via Stripe Elements
-4. Stripe webhook confirms → booking status → CONFIRMED, payment → SUCCESS
-5. On cancellation → refund via Stripe → booking → CANCELLED, payment → REFUNDED
-```
-
----
-
-## 🔐 Security Checklist
-- [x] JWT access token (15min) + refresh token (7 days)
-- [x] Rate limiting on auth routes
-- [x] Account lockout after 5 failed attempts
-- [x] Email verification
-- [x] Password complexity validation
-- [x] No user enumeration on forgot password
-- [ ] Stripe webhook signature verification
-- [x] File upload validation (type + size)
-- [ ] Admin audit logging on all sensitive actions
-- [ ] Redis session blacklisting on logout
-
----
-
-## 📁 Folder Structure (Backend)
-```
-src/
-├── controllers/
-├── services/
-├── modules/
-├── dto/
-├── guards/
-├── decorators/
-├── strategies/
+backend/
 ├── prisma/
-│   └── seeds/
-├── common/
-│   ├── filters/
-│   └── interceptors/
-└── main.ts
+│   ├── schema.prisma
+│   └── migrations/
+└── src/
+    ├── controllers/       # Route handlers
+    ├── services/          # Business logic
+    ├── modules/           # NestJS module definitions
+    ├── dto/               # Request validation schemas
+    ├── guards/            # JWT + Roles guards
+    ├── decorators/        # @CurrentUser, @Roles
+    ├── strategies/        # Passport JWT strategy
+    ├── gateways/          # Socket.io gateway
+    ├── prisma/
+    │   └── seeds/         # Menu items, admin user seeds
+    ├── common/
+    │   ├── filters/       # Global exception filter
+    │   └── interceptors/  # Response transform interceptor
+    └── main.ts
 ```
+
+### Frontend
+```
+frontend/
+└── src/
+    ├── api/
+    │   └── axios.js       # Axios instance + interceptors
+    ├── components/
+    │   ├── dashboard/     # DashboardLayout, Sidebar, StatsCard, NotificationBell
+    │   ├── ProtectedRoute.jsx
+    │   ├── GuestRoute.jsx
+    │   ├── ImageCropModal.jsx
+    │   ├── Logo.jsx
+    │   └── ThreeBackground.jsx
+    ├── context/
+    │   └── AuthContext.jsx
+    ├── pages/
+    │   ├── admin/         # Dashboard, Users, Vendors, Services, Reviews, AuditLog
+    │   ├── vendor/        # Dashboard, Profile, Services, Bookings, BusinessHours
+    │   ├── customer/      # Dashboard, Explore, VendorDetail, Bookings, Payments, Profile
+    │   └── auth/          # Login, Register, ForgotPassword, ResetPassword, VerifyEmail
+    ├── App.jsx
+    └── main.jsx
+```
+
+---
+
+## 🏗️ Build Order
+
+- [x] Step 1 — Auth (register, login, email verify, forgot/reset password, refresh token, logout)
+- [x] Step 2 — Database schema (full Prisma models)
+- [x] Step 3 — Categories module
+- [x] Step 4 — Vendor module (registration, profile, admin approval flow)
+- [x] Step 5 — Services module (CRUD + image upload via Cloudinary)
+- [x] Step 6 — Bookings module (all 4 types + availability + business hours)
+- [x] Step 7 — Payments module (Razorpay)
+- [x] Step 8 — Reviews module
+- [x] Step 9 — Notifications module (Socket.io real-time)
+- [x] Step 10 — Admin module (dashboard, users, audit log)
+- [x] Step 11 — Search & Filter
+- [x] Step 12 — Frontend: Auth pages
+- [x] Step 13 — Frontend: Admin dashboard (live data + charts)
+- [x] Step 14 — Frontend: Admin users, vendors, services, reviews, audit log
+- [x] Step 15 — Frontend: Vendor dashboard, profile, services, bookings, business hours
+- [x] Step 16 — Frontend: Customer dashboard, explore, vendor detail, bookings, payments, profile
+- [ ] Step 17 — Frontend: Missing pages (see gaps below)
+- [ ] Step 18 — Public vendor profile page (`/v/:slug`)
+- [ ] Step 19 — Swagger API docs
+- [ ] Step 20 — Docker Compose setup
+- [ ] Step 21 — Production deployment
+
+---
+
+## 🔧 What's Still Missing
+
+### Backend
+- `GET /admin/bookings` — view all bookings (admin)
+- `GET /admin/payments` — view all payments (admin)
+- `GET /vendors/:id/public` — public vendor profile by slug
+
+### Frontend — Admin
+- Categories page (create, edit, delete, toggle active)
+- Bookings page (view all bookings across platform)
+- Payments page (view all transactions)
+
+### Frontend — Vendor
+- Logo & cover image upload (in profile page)
+- Reviews page (all reviews received + reply)
+- Notifications page
+- Earnings summary
+
+### Frontend — Customer
+- Notifications page
+- My reviews page (reviews I've written)
+
+### Frontend — Public
+- `/v/:slug` — public vendor profile (shareable link for WhatsApp/Instagram)
 
 ---
 
@@ -400,167 +502,66 @@ src/
 
 ### Branch Strategy
 ```
-main          → production only, stable code
-develop       → main working branch, all features merge here
-feature/*     → one branch per feature
-hotfix/*      → urgent bug fixes on main
+main        → production only, stable code
+develop     → main working branch, all features merge here
+feature/*   → one branch per feature
+hotfix/*    → urgent bug fixes on main
 ```
 
-### Step by Step Flow
+### Flow
 ```
-1. Always branch off develop
-   git checkout develop
-   git checkout -b feature/your-feature
+1. Branch off develop
+   git checkout develop && git checkout -b feature/your-feature
 
-2. Work on feature, commit regularly
-   git add .
-   git commit -m "feat: description"
+2. Work and commit
+   git add . && git commit -m "feat: description"
 
-3. Before merging — verify no errors
-   nest build        → must pass
-   npm run test      → must pass
-   test APIs manually in Postman
+3. Verify before merging
+   nest build       → must pass
+   test APIs in Postman
 
-4. Only after verified → merge to develop
-   git checkout develop
-   git merge feature/your-feature
-   git push origin develop
+4. Merge to develop
+   git checkout develop && git merge feature/your-feature
 
-5. When develop is stable → merge to main
-   git checkout main
-   git merge develop
-   git push origin main
+5. When stable → merge to main
+   git checkout main && git merge develop
 ```
 
-### Commit Message Convention
+### Commit Convention
 ```
-feat:     new feature
-fix:      bug fix
-refactor: code change, no feature/fix
-docs:     README or documentation
-test:     adding tests
-chore:    package installs, config changes
+feat:      new feature
+fix:       bug fix
+refactor:  code change, no feature/fix
+docs:      README or documentation
+chore:     package installs, config changes
 ```
 
-### ⚠️ Rules
+### Rules
 - Never push directly to main
 - Always verify build passes before merging
-- Always verify no runtime errors before merging
 - One feature per branch
 - Delete feature branch after merging
 
 ---
 
-## 🚀 Current Status
-- Backend: NestJS + TypeScript ✅
-- Database: PostgreSQL + Prisma ✅
-- Auth: Fully implemented ✅
-- Categories: Fully implemented ✅
-- Vendor module: Fully implemented ✅
-- Services module: Fully implemented ✅
-- Bookings module: Fully implemented ✅
-- Payments module: Fully implemented ✅
-- Reviews module: Fully implemented ✅
-- Notifications module: Fully implemented ✅
-- Admin module: Fully implemented ✅
-- Search & Filter: Fully implemented ✅
-- Frontend: Auth pages done ✅
-- Admin dashboard: Live data ✅
-- Everything else: In progress 🔄
+## 🔐 Security Checklist
+- [x] JWT access token (15min) + refresh token rotation (7 days)
+- [x] Rate limiting on auth routes
+- [x] Account lockout after 5 failed attempts
+- [x] Email verification required before login
+- [x] Password complexity validation
+- [x] No user enumeration on forgot password
+- [x] Razorpay signature verification on payment
+- [x] File upload validation (type + size)
+- [x] Admin audit log on all sensitive actions
+- [x] Role-based access control on all routes
+- [x] Input validation via class-validator on every endpoint
+- [ ] Redis session blacklisting on logout
+- [ ] HTTPS enforced in production
 
 ---
 
-## 💡 Future Features Roadmap
-
-### Vendor Verification Badge
-- Admin marks vendor as verified after document check
-- Verified badge shown on vendor profile
-- Builds customer trust
-
-### Slug-based Public Profiles
-- Every vendor gets `plugin.com/v/vendor-slug`
-- Better for sharing on WhatsApp/Instagram
-- SEO friendly
-
-### Booking Reminders
-- Auto email/SMS to customer + vendor
-- 24 hours before booking
-- 1 hour before booking
-- Reduces no-shows significantly
-
-### Vendor Analytics Dashboard
-- Total bookings this month
-- Revenue this month
-- Most popular service
-- Peak booking hours
-- Customer retention rate
-
-### Waitlist System
-- Customer joins waitlist if slot is fully booked
-- Auto notify next person if cancellation happens
-
-### Service Packages / Bundles
-- Vendors create combo packages (e.g. Hair + Beard)
-- Discounted bundle pricing
-- Good for upselling
-
-### Customer Loyalty Points
-- Every booking earns points
-- Points redeemable for discounts
-- Keeps customers coming back
-
-### Multi-language Support (i18n)
-- Support multiple languages for different regions
-- Expands platform to more markets
-
-### Mobile App
-- React Native (shares code with React frontend)
-- Same backend + auth
-- iOS + Android
-
-### API Versioning
-- All routes prefixed with `/api/v1/`
-- Breaking changes released under `/api/v2/`
-- No existing clients break on updates
-
-### Soft Delete
-- `deletedAt` field on vendors, users, services
-- Data is recoverable
-- Admin can restore accidentally deleted records
-- Audit trail stays intact
-
-### Redis Caching Strategy
-- Cache category list (rarely changes)
-- Cache vendor public profiles
-- Cache available slots
-- Reduces DB hits massively at scale
-
-### Vendor Onboarding Flow
-- Step 1 → Basic info (name, category, location)
-- Step 2 → Upload logo + cover image
-- Step 3 → Add services
-- Step 4 → Set business hours
-- Step 5 → Submit for admin approval
-- Progress bar UI on frontend
-
-### Featured Vendors
-- Admin marks vendors as featured
-- Featured vendors appear at top of search results
-- Future monetization opportunity
-
-### Vendor Response Rate
-- Track how fast vendors confirm bookings
-- Show response rate % on vendor profile
-- Builds customer trust
-
-### Service Area / Radius
-- Vendors set a service radius (km)
-- Customers only see vendors who serve their location
-- Useful for home services, delivery vendors
-
----
-
-## 🔐 Auth Providers Plan
+## 🔐 Auth Providers
 
 | Provider | Status | Notes |
 |----------|--------|-------|
@@ -571,25 +572,23 @@ chore:    package installs, config changes
 
 ---
 
-## 📸 Instagram Integration Plan (Vendor Dashboard)
+## 💡 Future Roadmap
 
-### Phase 1
-- Vendor connects their Instagram account via Instagram Basic Display API
-- Vendor imports their Instagram post images directly into Plugin
-- Images saved to Cloudinary and used as service/profile photos
-- Vendor gets a shareable profile link → `plugin.com/v/vendor-slug`
-- Share button → opens Instagram/WhatsApp with pre-filled booking link
-
-### Phase 2 (Later)
-- Auto-post to Instagram when a new service is added
-- Instagram story template for vendors to share their booking link
-- Referral/invite system → vendor shares link → user signs up → auto follows vendor
-
-### What Instagram API Allows
-| Feature | Possible? | Notes |
-|---------|-----------|-------|
-| Import vendor's own posts | ✅ | Instagram Basic Display API |
-| Use images as service photos | ✅ | Download + upload to Cloudinary |
-| Share booking link to story | ✅ | Deep link, no API needed |
-| Access follower list | ❌ | Privacy rules, not allowed |
-| Auto-post on booking | ⚠️ | Requires Instagram Business API approval |
+| Feature | Priority | Notes |
+|---------|----------|-------|
+| Public vendor profile (`/v/:slug`) | 🔴 High | Shareable link for WhatsApp/Instagram |
+| Booking reminders (email/SMS) | 🔴 High | Reduces no-shows |
+| Vendor logo & cover upload | 🔴 High | Basic profile completeness |
+| Swagger API docs | 🟡 Medium | Developer experience |
+| Docker Compose | 🟡 Medium | Easy local setup |
+| Vendor analytics dashboard | 🟡 Medium | Revenue, peak hours, popular services |
+| Waitlist system | 🟡 Medium | Auto-notify on cancellation |
+| Featured vendors (admin toggle) | 🟡 Medium | Future monetization |
+| Vendor verification badge | 🟡 Medium | Builds customer trust |
+| Google OAuth | 🟡 Medium | Easier signup |
+| Service packages / bundles | 🟢 Low | Upselling |
+| Customer loyalty points | 🟢 Low | Retention |
+| Multi-language (i18n) | 🟢 Low | Regional expansion |
+| Mobile app (React Native) | 🟢 Low | After web is stable |
+| API versioning (`/api/v1/`) | 🟢 Low | Before public API |
+| Soft delete restore (admin) | 🟢 Low | Data recovery |

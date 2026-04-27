@@ -131,6 +131,26 @@ export class ReviewService {
 
   // ─── Admin: Hide / Show / Delete ──────────────────────────────────────────
 
+  async adminGetAll(page = 1, limit = 20) {
+    const skip = (page - 1) * limit;
+    const [reviews, total] = await Promise.all([
+      this.prisma.review.findMany({
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          customer: { select: { id: true, name: true } },
+          vendor: { select: { id: true, businessName: true } },
+        },
+      }),
+      this.prisma.review.count(),
+    ]);
+    return {
+      data: reviews,
+      meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
   async adminHide(adminId: number, reviewId: number) {
     return this.adminToggleVisibility(adminId, reviewId, false);
   }

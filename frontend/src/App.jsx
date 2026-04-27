@@ -12,6 +12,9 @@ import SocialCallback from './pages/SocialCallback';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminUsers from './pages/admin/Users';
 import AdminAuditLog from './pages/admin/AuditLog';
+import AdminVendors from './pages/admin/Vendors';
+import AdminServices from './pages/admin/Services';
+import AdminReviews from './pages/admin/Reviews';
 import VendorDashboard from './pages/vendor/Dashboard';
 import VendorProfile from './pages/vendor/Profile';
 import VendorServices from './pages/vendor/Services';
@@ -67,6 +70,9 @@ function App() {
           <Route path="/admin/dashboard" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
           <Route path="/admin/audit-log" element={<ProtectedRoute roles={['ADMIN']}><AdminAuditLog /></ProtectedRoute>} />
+          <Route path="/admin/vendors" element={<ProtectedRoute roles={['ADMIN']}><AdminVendors /></ProtectedRoute>} />
+          <Route path="/admin/services" element={<ProtectedRoute roles={['ADMIN']}><AdminServices /></ProtectedRoute>} />
+          <Route path="/admin/reviews" element={<ProtectedRoute roles={['ADMIN']}><AdminReviews /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

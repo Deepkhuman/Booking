@@ -17,6 +17,16 @@ export class ReviewController {
     return this.reviewService.create(user.id, dto);
   }
 
+  @Get('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  getAllReviews(
+    @Query('page') page = 1,
+    @Query('limit') limit = 20,
+  ) {
+    return this.reviewService.adminGetAll(Number(page), Number(limit));
+  }
+
   @Get('vendor/:vendorId')
   getVendorReviews(
     @Param('vendorId', ParseIntPipe) vendorId: number,

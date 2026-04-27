@@ -6,12 +6,10 @@ const menuItems = [
   // ADMIN menu
   { label: 'Dashboard', icon: 'LayoutDashboard', path: '/admin/dashboard', order: 1, roles: [Role.ADMIN] },
   { label: 'Vendors', icon: 'Store', path: '/admin/vendors', order: 2, roles: [Role.ADMIN] },
-  { label: 'Users', icon: 'Users', path: '/admin/users', order: 3, roles: [Role.ADMIN] },
-  { label: 'Categories', icon: 'Tag', path: '/admin/categories', order: 4, roles: [Role.ADMIN] },
-  { label: 'Bookings', icon: 'CalendarDays', path: '/admin/bookings', order: 5, roles: [Role.ADMIN] },
-  { label: 'Reviews', icon: 'Star', path: '/admin/reviews', order: 6, roles: [Role.ADMIN] },
-  { label: 'Payments', icon: 'CreditCard', path: '/admin/payments', order: 7, roles: [Role.ADMIN] },
-  { label: 'Audit Log', icon: 'ScrollText', path: '/admin/audit-log', order: 8, roles: [Role.ADMIN] },
+  { label: 'Services', icon: 'Briefcase', path: '/admin/services', order: 3, roles: [Role.ADMIN] },
+  { label: 'Users', icon: 'Users', path: '/admin/users', order: 4, roles: [Role.ADMIN] },
+  { label: 'Reviews', icon: 'Star', path: '/admin/reviews', order: 5, roles: [Role.ADMIN] },
+  { label: 'Audit Log', icon: 'ScrollText', path: '/admin/audit-log', order: 6, roles: [Role.ADMIN] },
 
   // VENDOR menu
   { label: 'Dashboard', icon: 'LayoutDashboard', path: '/vendor-dashboard', order: 1, roles: [Role.VENDOR] },
