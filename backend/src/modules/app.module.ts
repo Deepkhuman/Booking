@@ -12,6 +12,7 @@ import { PaymentModule } from './payment.module';
 import { UserModule } from './user.module';
 import { ReviewModule } from './review.module';
 import { NotificationModule } from './notification.module';
+import { AdminModule } from './admin.module';
 import { AppController } from '../controllers/app.controller';
 
 @Module({
@@ -29,6 +30,7 @@ import { AppController } from '../controllers/app.controller';
     UserModule,
     ReviewModule,
     NotificationModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [],

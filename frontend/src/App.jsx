@@ -10,6 +10,8 @@ import ResetPassword from './pages/ResetPassword';
 import VerifyEmail from './pages/VerifyEmail';
 import SocialCallback from './pages/SocialCallback';
 import AdminDashboard from './pages/admin/Dashboard';
+import AdminUsers from './pages/admin/Users';
+import AdminAuditLog from './pages/admin/AuditLog';
 import VendorDashboard from './pages/vendor/Dashboard';
 import VendorProfile from './pages/vendor/Profile';
 import VendorServices from './pages/vendor/Services';
@@ -61,16 +63,10 @@ function App() {
           <Route path="/vendor-dashboard/services" element={<ProtectedRoute roles={['VENDOR']}><VendorServices /></ProtectedRoute>} />
           <Route path="/vendor-dashboard/bookings" element={<ProtectedRoute roles={['VENDOR']}><VendorBookings /></ProtectedRoute>} />
           <Route path="/vendor-dashboard/business-hours" element={<ProtectedRoute roles={['VENDOR']}><BusinessHours /></ProtectedRoute>} />
-          <Route path="/admin-dashboard" element={
-            <ProtectedRoute roles={['ADMIN']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
-          <Route path="/admin/dashboard" element={
-            <ProtectedRoute roles={['ADMIN']}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          } />
+          <Route path="/admin-dashboard" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute roles={['ADMIN']}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute roles={['ADMIN']}><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/audit-log" element={<ProtectedRoute roles={['ADMIN']}><AdminAuditLog /></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
