@@ -7,16 +7,21 @@ export default function DashboardLayout({ children }) {
     <div className="dashboard-layout">
       <Toaster position="top-right" toastOptions={{ style: { fontFamily: 'Inter, sans-serif', fontSize: '0.88rem' } }} />
       <Sidebar />
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-        <header style={{
-          display: 'flex', justifyContent: 'flex-end', alignItems: 'center',
-          padding: '0.65rem 1.5rem',
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: '100vh' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'flex-end',
+          alignItems: 'center',
+          padding: '0.6rem 1.5rem',
           borderBottom: '1px solid var(--border)',
-          background: 'var(--card)',
-          position: 'sticky', top: 0, zIndex: 100,
+          background: 'var(--warm-white)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 100,
+          flexShrink: 0,
         }}>
           <NotificationBell />
-        </header>
+        </div>
         <main className="dashboard-main">
           {children}
         </main>
