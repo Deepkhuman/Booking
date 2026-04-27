@@ -94,6 +94,7 @@ export class PaymentService {
       where: { stripePaymentIntentId: dto.razorpayOrderId },
     });
     if (!payment) throw new NotFoundException('Payment record not found');
+    if (payment.userId !== userId) throw new ForbiddenException('You are not authorized to verify this payment');
 
     await this.prisma.$transaction([
       this.prisma.payment.update({

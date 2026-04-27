@@ -134,6 +134,11 @@ export class BookingService {
     if (booking.status !== BookingStatus.PENDING) {
       throw new BadRequestException('Only pending bookings can be confirmed');
     }
+    // check vendor is still active
+    const vendor = await this.prisma.vendor.findUnique({ where: { userId } });
+    if (vendor && vendor.status !== 'APPROVED') {
+      throw new ForbiddenException('Your vendor account is not active');
+    }
     const updated = await this.prisma.booking.update({
       where: { id: bookingId },
       data: { status: BookingStatus.CONFIRMED },
@@ -159,9 +164,7 @@ export class BookingService {
     });
     if (!booking) throw new NotFoundException('Booking not found');
 
-    // customer can only cancel their own
     if (role === 'CUSTOMER' && booking.customerId !== userId) throw new ForbiddenException();
-    // vendor can only cancel their own
     if (role === 'VENDOR') {
       const vendor = await this.getVendorByUserOrThrow(userId);
       if (booking.vendorId !== vendor.id) throw new ForbiddenException();

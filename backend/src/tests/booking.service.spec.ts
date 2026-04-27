@@ -147,6 +147,22 @@ describe('BookingService', () => {
       mockPrisma.booking.findFirst.mockResolvedValue(null);
       await expect(service.confirm(10, 999)).rejects.toThrow(NotFoundException);
     });
+
+    it('should throw if vendor is suspended', async () => {
+      mockPrisma.vendor.findUnique
+        .mockResolvedValueOnce(mockVendor)
+        .mockResolvedValueOnce({ ...mockVendor, status: 'SUSPENDED' });
+      mockPrisma.booking.findFirst.mockResolvedValue(mockBooking);
+      await expect(service.confirm(10, 100)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw if vendor is blocked', async () => {
+      mockPrisma.vendor.findUnique
+        .mockResolvedValueOnce(mockVendor)
+        .mockResolvedValueOnce({ ...mockVendor, status: 'BLOCKED' });
+      mockPrisma.booking.findFirst.mockResolvedValue(mockBooking);
+      await expect(service.confirm(10, 100)).rejects.toThrow(ForbiddenException);
+    });
   });
 
   // ─────────────────────────────────────────
