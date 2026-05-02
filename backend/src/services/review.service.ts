@@ -5,10 +5,14 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateReviewDto, VendorReplyDto } from '../dto/review.dto';
 import { BookingStatus, AdminActionType, AdminTargetType } from '@prisma/client';
+import { AlertService } from './alert.service';
 
 @Injectable()
 export class ReviewService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private alert: AlertService,
+  ) {}
 
   // ─── Create Review ─────────────────────────────────────────────────────────
 
@@ -37,6 +41,18 @@ export class ReviewService {
         customer: { select: { id: true, name: true, avatar: true } },
       },
     });
+
+    // Bot 28 — Low Rating Alert
+    if (dto.rating <= 2) {
+      this.alert.raise({
+        type: 'RATING_BOMB',
+        severity: 'MEDIUM',
+        targetId: String(booking.vendorId),
+        targetType: 'VENDOR',
+        message: `Vendor #${booking.vendorId} received a ${dto.rating}-star review. Review it immediately.`,
+        meta: { vendorId: booking.vendorId, rating: dto.rating, comment: dto.comment },
+      }).catch(() => {});
+    }
 
     return review;
   }

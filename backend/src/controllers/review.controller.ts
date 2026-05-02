@@ -5,16 +5,22 @@ import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { ReviewService } from '../services/review.service';
 import { CreateReviewDto, VendorReplyDto } from '../dto/review.dto';
+import { SecurityService } from '../services/security.service';
 
 @Controller('reviews')
 export class ReviewController {
-  constructor(private readonly reviewService: ReviewService) {}
+  constructor(
+    private readonly reviewService: ReviewService,
+    private readonly security: SecurityService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('CUSTOMER')
-  create(@CurrentUser() user: any, @Body() dto: CreateReviewDto) {
-    return this.reviewService.create(user.id, dto);
+  async create(@CurrentUser() user: any, @Body() dto: CreateReviewDto) {
+    const result = await this.reviewService.create(user.id, dto);
+    this.security.onReviewCreated(result.vendorId, dto.rating).catch(() => {});
+    return result;
   }
 
   @Get('admin')

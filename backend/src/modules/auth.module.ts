@@ -8,6 +8,7 @@ import { JwtStrategy } from '../strategies/jwt.strategy';
 import { GoogleStrategy } from '../strategies/google.strategy';
 import { FacebookStrategy } from '../strategies/facebook.strategy';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
+import { SecurityModule } from './security.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { JwtAuthGuard } from '../guards/jwt-auth.guard';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '15m' },
     }),
+    SecurityModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, EmailService, JwtStrategy, GoogleStrategy, FacebookStrategy, JwtAuthGuard],

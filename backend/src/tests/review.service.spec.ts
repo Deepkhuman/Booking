@@ -3,6 +3,7 @@ import { ReviewService } from '../services/review.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { BookingStatus } from '@prisma/client';
+import { AlertService } from '../services/alert.service';
 
 const mockPrisma = {
   booking: { findFirst: jest.fn() },
@@ -12,6 +13,7 @@ const mockPrisma = {
     findMany: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    updateMany: jest.fn(),
     delete: jest.fn(),
     count: jest.fn(),
     aggregate: jest.fn(),
@@ -20,6 +22,8 @@ const mockPrisma = {
   vendor: { findUnique: jest.fn() },
   adminAction: { create: jest.fn() },
 };
+
+const mockAlert = { raise: jest.fn() };
 
 const mockBooking = {
   id: 10, customerId: 1, vendorId: 5,
@@ -39,6 +43,7 @@ describe('ReviewService', () => {
       providers: [
         ReviewService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: AlertService, useValue: mockAlert },
       ],
     }).compile();
 

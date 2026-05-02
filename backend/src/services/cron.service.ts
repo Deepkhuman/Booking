@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from './notification.service';
 import { EmailService } from './email.service';
+import { AlertService } from './alert.service';
 import { BookingStatus, NotificationType } from '@prisma/client';
 
 @Injectable()
@@ -13,6 +14,7 @@ export class CronService {
     private prisma: PrismaService,
     private notifications: NotificationService,
     private email: EmailService,
+    private alert: AlertService,
   ) {}
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -492,5 +494,119 @@ export class CronService {
     }
 
     this.logger.log(`[Bot 15] Sent re-engagement emails to ${customers.length} customers`);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 22 — Unusual Booking Spike
+  // Every hour — bookings this hour > 5x average → alert admin
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async detectBookingSpike() {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const [thisHour, lastWeekTotal] = await Promise.all([
+      this.prisma.booking.count({ where: { createdAt: { gte: oneHourAgo }, deletedAt: null } }),
+      this.prisma.booking.count({ where: { createdAt: { gte: sevenDaysAgo }, deletedAt: null } }),
+    ]);
+
+    const hourlyAverage = lastWeekTotal / (7 * 24);
+    if (hourlyAverage > 0 && thisHour > hourlyAverage * 5) {
+      await this.alert.raise({
+        type: 'BOOKING_SPIKE',
+        severity: 'MEDIUM',
+        targetId: 'platform',
+        targetType: 'IP',
+        message: `Unusual booking spike: ${thisHour} bookings this hour vs ${hourlyAverage.toFixed(1)} average.`,
+        meta: { thisHour, hourlyAverage: hourlyAverage.toFixed(1) },
+      });
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 23 — Unusual Revenue Spike
+  // Daily midnight — revenue today > 3x daily average → alert admin
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron('0 0 * * *')
+  async detectRevenueSpike() {
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const [todayRevenue, weekRevenue] = await Promise.all([
+      this.prisma.payment.aggregate({
+        _sum: { amount: true },
+        where: { status: 'SUCCESS', createdAt: { gte: todayStart } },
+      }),
+      this.prisma.payment.aggregate({
+        _sum: { amount: true },
+        where: { status: 'SUCCESS', createdAt: { gte: sevenDaysAgo } },
+      }),
+    ]);
+
+    const today = todayRevenue._sum.amount ?? 0;
+    const dailyAvg = (weekRevenue._sum.amount ?? 0) / 7;
+
+    if (dailyAvg > 0 && today > dailyAvg * 3) {
+      await this.alert.raise({
+        type: 'REVENUE_SPIKE',
+        severity: 'MEDIUM',
+        targetId: 'platform',
+        targetType: 'IP',
+        message: `Unusual revenue spike: ₹${today.toFixed(0)} today vs ₹${dailyAvg.toFixed(0)} daily average.`,
+        meta: { today, dailyAvg: dailyAvg.toFixed(0) },
+      });
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 25 — Dormant Admin Check
+  // Every Monday 6am — admin accounts not logged in 30 days → alert super admin
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron('0 6 * * 1')
+  async checkDormantAdmins() {
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const dormantAdmins = await this.prisma.user.findMany({
+      where: { role: 'ADMIN', updatedAt: { lt: cutoff }, isBlocked: false, deletedAt: null },
+      select: { id: true, email: true, name: true },
+    });
+
+    if (!dormantAdmins.length) return;
+
+    await this.alert.raise({
+      type: 'BRUTE_FORCE', // reusing closest type
+      severity: 'LOW',
+      targetId: 'admin-accounts',
+      targetType: 'USER',
+      message: `${dormantAdmins.length} admin account(s) have not logged in for 30+ days: ${dormantAdmins.map(a => a.email).join(', ')}`,
+      meta: { count: dormantAdmins.length, emails: dormantAdmins.map(a => a.email) },
+    });
+
+    this.logger.log(`[Bot 25] Flagged ${dormantAdmins.length} dormant admin accounts`);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 26 — Platform Health Check
+  // Every 5 mins — check DB is reachable, alert if not
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron(CronExpression.EVERY_5_MINUTES)
+  async platformHealthCheck() {
+    try {
+      await this.prisma.$queryRaw`SELECT 1`;
+    } catch (err) {
+      await this.alert.raise({
+        type: 'BOOKING_SPIKE',
+        severity: 'CRITICAL',
+        targetId: 'database',
+        targetType: 'IP',
+        message: 'Platform health check FAILED — database unreachable!',
+        meta: { error: String(err) },
+      });
+    }
   }
 }

@@ -114,6 +114,22 @@ export class EmailService {
     `));
   }
 
+  async sendVendorApprovedWelcome(email: string, name: string, businessName: string) {
+    await this.send(email, `🎉 Welcome to Plugin — ${businessName} is approved!`, this.wrap(`
+      <h2>You're approved! 🎉</h2>
+      <p>Hi ${name},</p>
+      <p>Your business <strong>${businessName}</strong> has been approved on Plugin. You can now start accepting bookings!</p>
+      <div class="card">
+        <p><strong>Next steps:</strong></p>
+        <p>1. Add your services with prices</p>
+        <p>2. Set your business hours</p>
+        <p>3. Upload your logo and cover image</p>
+        <p>4. Share your booking link with customers</p>
+      </div>
+      <a href="${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/vendor-dashboard" class="btn">Go to Dashboard</a>
+    `));
+  }
+
   async sendSponsorExpiryWarning(email: string, name: string, businessName: string, expiresOn: string) {
     await this.send(email, `Your sponsorship expires in 3 days — ${businessName}`, this.wrap(`
       <h2>Sponsorship Expiring Soon ⚠️</h2>
@@ -141,6 +157,19 @@ export class EmailService {
       <p>You haven't made a booking in a while. Here's what's available near you:</p>
       <div style="margin: 16px 0">${catList}</div>
       <a href="${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/customer-dashboard/explore" class="btn">Explore Vendors</a>
+    `));
+  }
+
+  async sendSecurityAlert(email: string, title: string, message: string, meta: Record<string, any>) {
+    const metaRows = Object.entries(meta)
+      .map(([k, v]) => `<p><strong>${k}:</strong> ${v}</p>`)
+      .join('');
+    await this.send(email, `🚨 ${title}`, this.wrap(`
+      <h2 style="color:#dc2626">🚨 Security Alert</h2>
+      <p>${message}</p>
+      ${metaRows ? `<div class="card">${metaRows}</div>` : ''}
+      <a href="${process.env.FRONTEND_URL ?? 'http://localhost:5173'}/admin/security" class="btn" style="background:linear-gradient(135deg,#dc2626,#b91c1c)">View Security Dashboard</a>
+      <p class="muted">This is an automated security alert from Plugin. Take action immediately if this looks suspicious.</p>
     `));
   }
 

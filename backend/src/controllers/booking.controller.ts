@@ -10,19 +10,25 @@ import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Role, BookingStatus } from '@prisma/client';
 import { JwtPayload } from '../strategies/jwt.strategy';
+import { SecurityService } from '../services/security.service';
 
 @Controller('bookings')
 @UseGuards(JwtAuthGuard)
 export class BookingController {
-  constructor(private bookingService: BookingService) {}
+  constructor(
+    private bookingService: BookingService,
+    private security: SecurityService,
+  ) {}
 
   // ─── Customer ──────────────────────────────────────────────────────────────
 
   @Post()
   @UseGuards(RolesGuard)
   @Roles(Role.CUSTOMER)
-  create(@CurrentUser() user: JwtPayload, @Body() dto: CreateBookingDto) {
-    return this.bookingService.create(user.id, dto);
+  async create(@CurrentUser() user: JwtPayload, @Body() dto: CreateBookingDto) {
+    const result = await this.bookingService.create(user.id, dto);
+    this.security.onBookingCreated(user.id).catch(() => {});
+    return result;
   }
 
   @Get('mine')

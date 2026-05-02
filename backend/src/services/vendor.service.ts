@@ -7,12 +7,14 @@ import { RegisterVendorDto, UpdateVendorDto, AdminVendorActionDto, VendorQueryDt
 import { VendorStatus, AdminActionType, AdminTargetType, NotificationType } from '@prisma/client';
 import slugify from 'slugify';
 import { NotificationService } from './notification.service';
+import { EmailService } from './email.service';
 
 @Injectable()
 export class VendorService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationService,
+    private email: EmailService,
   ) {}
 
   // ─── Vendor Registration ───────────────────────────────────────────────────
@@ -214,6 +216,16 @@ export class VendorService {
       message: 'Your vendor profile has been approved! You can now accept bookings.',
       metadata: { vendorId },
     });
+
+    // Bot 30 — Vendor Approved Welcome Email
+    const user = await this.prisma.user.findUnique({
+      where: { id: vendor.userId },
+      select: { email: true, name: true },
+    });
+    if (user?.email) {
+      this.email.sendVendorApprovedWelcome(user.email, user.name ?? 'there', vendor.businessName)
+        .catch(() => {});
+    }
 
     return updated;
   }

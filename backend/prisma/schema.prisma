@@ -89,6 +89,31 @@ enum AdminActionType {
   UNSPONSOR
 }
 
+enum ThreatType {
+  BRUTE_FORCE
+  TOKEN_ABUSE
+  MASS_BOOKING
+  SUSPICIOUS_PAYMENT
+  RATING_BOMB
+  FAKE_VENDOR
+  API_ABUSE
+  BOOKING_SPIKE
+  REVENUE_SPIKE
+}
+
+enum ThreatSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ThreatTargetType {
+  USER
+  VENDOR
+  IP
+}
+
 enum SponsorTier {
   BASIC
   FEATURED
@@ -376,4 +401,19 @@ model AdminAction {
   action     AdminActionType
   reason     String?
   createdAt  DateTime        @default(now())
+}
+
+// ─────────────────────────────────────────
+// SECURITY THREAT LOG
+// ─────────────────────────────────────────
+
+model SecurityThreat {
+  id           Int               @id @default(autoincrement())
+  type         ThreatType
+  severity     ThreatSeverity
+  targetId     String
+  targetType   ThreatTargetType
+  meta         Json?
+  isResolved   Boolean           @default(false)
+  createdAt    DateTime          @default(now())
 }

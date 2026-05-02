@@ -15,6 +15,7 @@ import { ReviewModule } from './review.module';
 import { NotificationModule } from './notification.module';
 import { AdminModule } from './admin.module';
 import { CronModule } from './cron.module';
+import { SecurityModule } from './security.module';
 import { AppController } from '../controllers/app.controller';
 
 @Module({
@@ -35,6 +36,7 @@ import { AppController } from '../controllers/app.controller';
     NotificationModule,
     AdminModule,
     CronModule,
+    SecurityModule,
   ],
   controllers: [AppController],
   providers: [],

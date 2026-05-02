@@ -8,6 +8,7 @@ import {
 import { BookingStatus, BookingType, VendorStatus } from '@prisma/client';
 
 import { NotificationService } from '../services/notification.service';
+import { AlertService } from '../services/alert.service';
 
 const mockPrisma = {
   vendor: { findFirst: jest.fn(), findUnique: jest.fn() },
@@ -27,6 +28,7 @@ const mockPrisma = {
 };
 
 const mockNotifications = { send: jest.fn() };
+const mockAlert = { raise: jest.fn() };
 
 const mockVendor = { id: 1, userId: 10, status: VendorStatus.APPROVED, isActive: true, bookingType: BookingType.SLOT_BASED };
 const mockService = { id: 5, vendorId: 1, name: 'Haircut', price: 200, isActive: true, isEnabled: true, deletedAt: null };
@@ -46,6 +48,7 @@ describe('BookingService', () => {
         BookingService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationService, useValue: mockNotifications },
+        { provide: AlertService, useValue: mockAlert },
       ],
     }).compile();
 

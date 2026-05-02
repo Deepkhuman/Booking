@@ -10,11 +10,15 @@ import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { JwtPayload } from '../strategies/jwt.strategy';
 import { Role } from '@prisma/client';
+import { SecurityService } from '../services/security.service';
 
 @Controller('payments')
 @UseGuards(JwtAuthGuard)
 export class PaymentController {
-  constructor(private paymentService: PaymentService) {}
+  constructor(
+    private paymentService: PaymentService,
+    private security: SecurityService,
+  ) {}
 
   @Post('create-order')
   @UseGuards(RolesGuard)
@@ -26,8 +30,10 @@ export class PaymentController {
   @Post('verify')
   @UseGuards(RolesGuard)
   @Roles(Role.CUSTOMER)
-  verifyPayment(@CurrentUser() user: JwtPayload, @Body() dto: VerifyPaymentDto) {
-    return this.paymentService.verifyPayment(user.id, dto);
+  async verifyPayment(@CurrentUser() user: JwtPayload, @Body() dto: VerifyPaymentDto) {
+    const result = await this.paymentService.verifyPayment(user.id, dto);
+    this.security.onPaymentVerified(user.id).catch(() => {});
+    return result;
   }
 
   @Get('history')

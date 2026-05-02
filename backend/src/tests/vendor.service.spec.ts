@@ -5,6 +5,7 @@ import { ConflictException, NotFoundException, ForbiddenException, BadRequestExc
 import { VendorStatus, BookingType } from '@prisma/client';
 
 import { NotificationService } from '../services/notification.service';
+import { EmailService } from '../services/email.service';
 
 const mockPrisma = {
   vendor: {
@@ -22,9 +23,13 @@ const mockPrisma = {
   adminAction: {
     create: jest.fn(),
   },
+  user: {
+    findUnique: jest.fn(),
+  },
 };
 
-const mockNotifications = { send: jest.fn() };
+const mockNotifications = { send: jest.fn().mockResolvedValue({}) };
+const mockEmail = { sendVendorApprovedWelcome: jest.fn().mockResolvedValue(undefined) };
 
 const mockVendor = {
   id: 1,
@@ -47,6 +52,7 @@ describe('VendorService', () => {
         VendorService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationService, useValue: mockNotifications },
+        { provide: EmailService, useValue: mockEmail },
       ],
     }).compile();
 
@@ -173,6 +179,7 @@ describe('VendorService', () => {
       mockPrisma.vendor.findFirst.mockResolvedValue(mockVendor);
       mockPrisma.vendor.update.mockResolvedValue({ ...mockVendor, status: VendorStatus.APPROVED });
       mockPrisma.adminAction.create.mockResolvedValue({});
+      mockPrisma.user.findUnique.mockResolvedValue({ email: 'v@test.com', name: 'Vendor' });
 
       const result = await service.approve(1, 1, {});
       expect(result.status).toBe(VendorStatus.APPROVED);

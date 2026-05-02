@@ -326,8 +326,22 @@ targetId, targetType: VENDOR | SERVICE | REVIEW | USER
 action: APPROVE | SUSPEND | BLOCK | UNBLOCK | DELETE |
         ENABLE_SERVICE | DISABLE_SERVICE |
         HIDE_REVIEW | SHOW_REVIEW |
-        BLOCK_USER | UNBLOCK_USER
+        BLOCK_USER | UNBLOCK_USER |
+        SPONSOR | UNSPONSOR
 reason, createdAt
+```
+
+### SecurityThreat
+```
+id
+type: BRUTE_FORCE | TOKEN_ABUSE | MASS_BOOKING | SUSPICIOUS_PAYMENT |
+      RATING_BOMB | FAKE_VENDOR | API_ABUSE | BOOKING_SPIKE | REVENUE_SPIKE
+severity: LOW | MEDIUM | HIGH | CRITICAL
+targetId (userId or vendorId)
+targetType: USER | VENDOR | IP
+meta (JSON — IP, count, details)
+isResolved
+createdAt
 ```
 
 ### MenuItem (dynamic sidebar)

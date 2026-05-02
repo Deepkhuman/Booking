@@ -6,12 +6,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateBookingDto, SetBusinessHoursDto } from '../dto/booking.dto';
 import { BookingStatus, BookingType, NotificationType, VendorStatus } from '@prisma/client';
 import { NotificationService } from './notification.service';
+import { AlertService } from './alert.service';
 
 @Injectable()
 export class BookingService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationService,
+    private alert: AlertService,
   ) {}
 
   // ─── Create Booking ────────────────────────────────────────────────────────
@@ -211,6 +213,23 @@ export class BookingService {
       message: 'Your booking is complete. Leave a review!',
       metadata: { bookingId },
     });
+
+    // Bot 27 — Vendor Milestone
+    const vendor = await this.prisma.vendor.findUnique({ where: { userId } });
+    if (vendor) {
+      const count = await this.prisma.booking.count({
+        where: { vendorId: vendor.id, status: BookingStatus.COMPLETED, deletedAt: null },
+      });
+      if ([10, 50, 100, 500, 1000].includes(count)) {
+        this.notifications.send({
+          userId,
+          type: NotificationType.BOOKING_COMPLETED,
+          title: `🎉 Milestone: ${count} Bookings!`,
+          message: `Congratulations! You've completed ${count} bookings on Plugin. Keep it up!`,
+          metadata: { milestone: count },
+        });
+      }
+    }
 
     return updated;
   }

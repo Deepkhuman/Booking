@@ -1,6 +1,6 @@
 import {
   Body, Controller, Delete, Get, Param, ParseIntPipe,
-  Post, Put, Query, UseGuards,
+  Post, Put, Query, Req, UseGuards,
 } from '@nestjs/common';
 import { VendorService } from '../services/vendor.service';
 import { RegisterVendorDto, UpdateVendorDto, AdminVendorActionDto, VendorQueryDto } from '../dto/vendor.dto';
@@ -10,18 +10,25 @@ import { Roles } from '../decorators/roles.decorator';
 import { CurrentUser } from '../decorators/current-user.decorator';
 import { Role, VendorStatus } from '@prisma/client';
 import { JwtPayload } from '../strategies/jwt.strategy';
+import { SecurityService } from '../services/security.service';
 
 // ─── Public + Vendor Routes ────────────────────────────────────────────────
 
 @Controller('vendors')
 export class VendorController {
-  constructor(private vendorService: VendorService) {}
+  constructor(
+    private vendorService: VendorService,
+    private security: SecurityService,
+  ) {}
 
   @Post('register')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.VENDOR)
-  register(@CurrentUser() user: JwtPayload, @Body() dto: RegisterVendorDto) {
-    return this.vendorService.register(user.id, dto);
+  async register(@CurrentUser() user: JwtPayload, @Body() dto: RegisterVendorDto, @Req() req: any) {
+    const result = await this.vendorService.register(user.id, dto);
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    this.security.onVendorRegistered(result.id, ip).catch(() => {});
+    return result;
   }
 
   @Get('me')

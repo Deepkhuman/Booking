@@ -3,10 +3,14 @@ import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
 import { ForgotPasswordDto, LoginDto, RefreshTokenDto, RegisterDto, ResetPasswordDto } from '../dto/auth.dto';
 import { GoogleAuthGuard, FacebookAuthGuard } from '../guards/social-auth.guard';
 import { AuthService } from '../services/auth.service';
+import { SecurityService } from '../services/security.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private security: SecurityService,
+  ) {}
 
   @Post('register')
   register(@Body() dto: RegisterDto) {
@@ -21,13 +25,23 @@ export class AuthController {
   @UseGuards(ThrottlerGuard)
   @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(@Body() dto: LoginDto, @Req() req: any) {
+    try {
+      return await this.authService.login(dto);
+    } catch (err) {
+      const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+      this.security.onFailedLogin(ip, dto.email).catch(() => {});
+      throw err;
+    }
   }
 
   @Post('refresh')
-  refresh(@Body() dto: RefreshTokenDto) {
-    return this.authService.refresh(dto);
+  async refresh(@Body() dto: RefreshTokenDto, @Req() req: any) {
+    const ip = req.ip || req.headers['x-forwarded-for'] || 'unknown';
+    const result = await this.authService.refresh(dto);
+    // fire-and-forget token abuse check
+    this.security.onRefreshTokenUse(dto.refreshToken, ip, (result as any).userId).catch(() => {});
+    return result;
   }
 
   @Post('logout')
