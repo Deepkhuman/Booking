@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { NotificationService } from './notification.service';
+import { EmailService } from './email.service';
 import { BookingStatus, NotificationType } from '@prisma/client';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class CronService {
   constructor(
     private prisma: PrismaService,
     private notifications: NotificationService,
+    private email: EmailService,
   ) {}
 
   // ─────────────────────────────────────────────────────────────────────────
@@ -282,5 +284,213 @@ export class CronService {
     });
 
     this.logger.log(`[Bot 8] Flagged ${zeroServiceIds.length} vendors with 0 active services`);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 9 & 10 — Booking Reminders (Customer + Vendor)
+  // Daily 8am — bookings scheduled for tomorrow → email both parties
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron('0 8 * * *')
+  async sendBookingReminders() {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        date: tomorrowStr,
+        status: { in: [BookingStatus.CONFIRMED, BookingStatus.PENDING] },
+        deletedAt: null,
+      },
+      include: {
+        customer: { select: { name: true, email: true } },
+        vendor: { select: { businessName: true, user: { select: { name: true, email: true } } } },
+        service: { select: { name: true } },
+      },
+    });
+
+    for (const b of bookings) {
+      const date = b.date!;
+      const time = b.startTime ?? '';
+
+      if (b.customer.email) {
+        await this.email.sendBookingReminderCustomer(
+          b.customer.email, b.customer.name ?? 'there',
+          b.vendor.businessName, b.service.name, date, time,
+        ).catch(() => {});
+      }
+
+      if ((b.vendor as any).user?.email) {
+        await this.email.sendBookingReminderVendor(
+          (b.vendor as any).user.email, (b.vendor as any).user.name ?? 'there',
+          b.customer.name ?? 'A customer', b.service.name, date, time,
+        ).catch(() => {});
+      }
+    }
+
+    this.logger.log(`[Bot 9/10] Sent booking reminders for ${bookings.length} bookings`);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 11 — Weekly Admin Report
+  // Every Monday 7am — stats email to admin
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron('0 7 * * 1')
+  async sendWeeklyAdminReport() {
+    const adminEmail = process.env.ADMIN_EMAIL;
+    if (!adminEmail) return;
+
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+    const [totalBookings, newBookings, revenueResult, newVendors, newUsers, pendingApprovals] =
+      await Promise.all([
+        this.prisma.booking.count({ where: { deletedAt: null } }),
+        this.prisma.booking.count({ where: { createdAt: { gte: weekAgo }, deletedAt: null } }),
+        this.prisma.payment.aggregate({ _sum: { amount: true }, where: { status: 'SUCCESS', createdAt: { gte: weekAgo } } }),
+        this.prisma.vendor.count({ where: { createdAt: { gte: weekAgo }, deletedAt: null } }),
+        this.prisma.user.count({ where: { createdAt: { gte: weekAgo }, deletedAt: null } }),
+        this.prisma.vendor.count({ where: { status: 'PENDING', deletedAt: null } }),
+      ]);
+
+    await this.email.sendWeeklyAdminReport(adminEmail, {
+      totalBookings, newBookings,
+      revenue: revenueResult._sum.amount ?? 0,
+      newVendors, newUsers, pendingApprovals,
+    }).catch(() => {});
+
+    this.logger.log('[Bot 11] Weekly admin report sent');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 12 — Vendor Inactivity Nudge
+  // Every Monday 9am — vendors not logged in 14 days → reminder email
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron('0 9 * * 1')
+  async sendVendorInactivityNudge() {
+    const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+    const vendors = await this.prisma.vendor.findMany({
+      where: {
+        status: 'APPROVED',
+        deletedAt: null,
+        user: { updatedAt: { lt: cutoff }, isBlocked: false },
+      },
+      select: { businessName: true, user: { select: { name: true, email: true } } },
+      take: 100,
+    });
+
+    for (const v of vendors) {
+      if (!v.user?.email) continue;
+      await this.email.sendVendorInactivityNudge(
+        v.user.email, v.user.name ?? 'there', v.businessName,
+      ).catch(() => {});
+    }
+
+    this.logger.log(`[Bot 12] Sent inactivity nudge to ${vendors.length} vendors`);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 13 — Sponsored Expiry Warning
+  // Daily 9am — sponsorship expiring in 3 days → email vendor
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron('0 9 * * *')
+  async sendSponsorExpiryWarnings() {
+    const in3Days = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+    const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    const vendors = await this.prisma.vendor.findMany({
+      where: {
+        isSponsored: true,
+        sponsoredUntil: { gte: tomorrow, lte: in3Days },
+        deletedAt: null,
+      },
+      select: { businessName: true, sponsoredUntil: true, user: { select: { name: true, email: true } } },
+    });
+
+    for (const v of vendors) {
+      if (!v.user?.email || !v.sponsoredUntil) continue;
+      await this.email.sendSponsorExpiryWarning(
+        v.user.email, v.user.name ?? 'there',
+        v.businessName, v.sponsoredUntil.toLocaleDateString('en-IN'),
+      ).catch(() => {});
+    }
+
+    this.logger.log(`[Bot 13] Sent sponsor expiry warnings to ${vendors.length} vendors`);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 14 — Review Nudge
+  // Daily 10am — completed bookings 24-48hrs ago with no review → email customer
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron('0 10 * * *')
+  async sendReviewNudges() {
+    const from = new Date(Date.now() - 48 * 60 * 60 * 1000);
+    const to = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const bookings = await this.prisma.booking.findMany({
+      where: {
+        status: BookingStatus.COMPLETED,
+        deletedAt: null,
+        updatedAt: { gte: from, lte: to },
+        review: null,
+      },
+      include: {
+        customer: { select: { name: true, email: true } },
+        vendor: { select: { businessName: true } },
+        service: { select: { name: true } },
+      },
+      take: 200,
+    });
+
+    for (const b of bookings) {
+      if (!b.customer.email) continue;
+      await this.email.sendReviewNudge(
+        b.customer.email, b.customer.name ?? 'there',
+        b.vendor.businessName, b.service.name,
+      ).catch(() => {});
+    }
+
+    this.logger.log(`[Bot 14] Sent review nudges for ${bookings.length} bookings`);
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // BOT 15 — Re-engagement Bot
+  // Every Sunday 10am — customers with no booking in 30 days → email
+  // ─────────────────────────────────────────────────────────────────────────
+
+  @Cron('0 10 * * 0')
+  async sendReEngagementEmails() {
+    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const customers = await this.prisma.user.findMany({
+      where: {
+        role: 'CUSTOMER',
+        isBlocked: false,
+        deletedAt: null,
+        bookings: { none: { createdAt: { gte: cutoff }, deletedAt: null } },
+      },
+      select: { name: true, email: true },
+      take: 500,
+    });
+
+    const categories = await this.prisma.category.findMany({
+      where: { isActive: true, deletedAt: null },
+      select: { name: true },
+      take: 6,
+    });
+
+    for (const u of customers) {
+      if (!u.email) continue;
+      await this.email.sendReEngagementEmail(
+        u.email, u.name ?? 'there', categories.map(c => c.name),
+      ).catch(() => {});
+    }
+
+    this.logger.log(`[Bot 15] Sent re-engagement emails to ${customers.length} customers`);
   }
 }
